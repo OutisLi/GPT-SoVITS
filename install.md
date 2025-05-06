@@ -23,8 +23,20 @@ git-lfs install
 pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu128
 pip install faster-whisper
 pip install -r requirements.txt
+```
 
-# python -c "import nltk; nltk.download(['averaged_perceptron_tagger','averaged_perceptron_tagger_eng','cmudict'])"
+## Windows
+
+```shell
+git clone git@github.com:OutisLi/GPT-SoVITS.git
+cd GPT-SoVITS
+
+conda create -n GPTSoVits python=3.12 -y
+conda activate GPTSoVits
+
+pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu128
+pip install faster-whisper
+pip install -r requirements.txt
 ```
 
 ## ASR model
