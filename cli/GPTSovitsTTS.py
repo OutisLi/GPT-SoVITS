@@ -1013,14 +1013,7 @@ class GPTSovitsTTS:
             t_prev_stage_end = ttime()  # Reset t1 for the next iteration, as in original's t1=ttime()
 
         # --- Final Audio Concatenation and Output ---
-        if not audio_opt or all(a.numel() == 0 for a in audio_opt if isinstance(a, torch.Tensor)):
-            yield output_sr, np.zeros(int(output_sr * 0.1), dtype=np.int16)
-            return
-
         final_audio_tensor = torch.cat(audio_opt, dim=0)
-        model_sr = 32000
-        if model_sr != output_sr:
-            final_audio_tensor = self._resample(final_audio_tensor.float().unsqueeze(0), model_sr, output_sr).squeeze(0)
         final_audio_np = final_audio_tensor.cpu().numpy()
         final_audio_int16 = (final_audio_np * 32767.0).astype(np.int16)
 
