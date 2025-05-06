@@ -180,7 +180,7 @@ def inference(
 
 def custom_sort_key(s):
     # 使用正则表达式提取字符串中的数字部分和非数字部分
-    parts = re.split("(\d+)", s)
+    parts = re.split(r"(\d+)", s)
     # 将数字部分转换为整数，非数字部分保持不变
     parts = [int(part) if part.isdigit() else part for part in parts]
     return parts
@@ -262,15 +262,17 @@ SoVITS_names, GPT_names = get_weights_names(GPT_weight_root, SoVITS_weight_root)
 
 from process_ckpt import get_sovits_version_from_path_fast
 
-v3v4set={"v3","v4"}
+v3v4set = {"v3", "v4"}
+
+
 def change_sovits_weights(sovits_path, prompt_language=None, text_language=None):
     global version, model_version, dict_language, if_lora_v3
     version, model_version, if_lora_v3 = get_sovits_version_from_path_fast(sovits_path)
     # print(sovits_path,version, model_version, if_lora_v3)
-    is_exist=is_exist_s2gv3 if model_version=="v3"else is_exist_s2gv4
+    is_exist = is_exist_s2gv3 if model_version == "v3" else is_exist_s2gv4
     path_sovits = path_sovits_v3 if model_version == "v3" else path_sovits_v4
     if if_lora_v3 == True and is_exist == False:
-        info = path_sovits + i18n("SoVITS %s 底模缺失，无法加载相应 LoRA 权重"%model_version)
+        info = path_sovits + i18n("SoVITS %s 底模缺失，无法加载相应 LoRA 权重" % model_version)
         gr.Warning(info)
         raise FileExistsError(info)
     dict_language = dict_language_v1 if version == "v1" else dict_language_v2
@@ -366,9 +368,7 @@ with gr.Blocks(title="GPT-SoVITS WebUI") as app:
                 )
             prompt_text = gr.Textbox(label=i18n("主参考音频的文本"), value="", lines=2)
             with gr.Row():
-                prompt_language = gr.Dropdown(
-                    label=i18n("主参考音频的语种"), choices=list(dict_language.keys()), value=i18n("中文")
-                )
+                prompt_language = gr.Dropdown(label=i18n("主参考音频的语种"), choices=list(dict_language.keys()), value=i18n("中文"))
                 with gr.Column():
                     ref_text_free = gr.Checkbox(
                         label=i18n("开启无参考文本模式。不填参考文本亦相当于开启。"),
@@ -385,38 +385,24 @@ with gr.Blocks(title="GPT-SoVITS WebUI") as app:
         with gr.Column():
             gr.Markdown(value=i18n("*请填写需要合成的目标文本和语种模式"))
             text = gr.Textbox(label=i18n("需要合成的文本"), value="", lines=20, max_lines=20)
-            text_language = gr.Dropdown(
-                label=i18n("需要合成的文本的语种"), choices=list(dict_language.keys()), value=i18n("中文")
-            )
+            text_language = gr.Dropdown(label=i18n("需要合成的文本的语种"), choices=list(dict_language.keys()), value=i18n("中文"))
 
     with gr.Group():
         gr.Markdown(value=i18n("推理设置"))
         with gr.Row():
             with gr.Column():
                 with gr.Row():
-                    batch_size = gr.Slider(
-                        minimum=1, maximum=200, step=1, label=i18n("batch_size"), value=20, interactive=True
-                    )
-                    sample_steps = gr.Radio(
-                        label=i18n("采样步数(仅对V3/4生效)"), value=32, choices=[4, 8, 16, 32, 64, 128], visible=True
-                    )
+                    batch_size = gr.Slider(minimum=1, maximum=200, step=1, label=i18n("batch_size"), value=20, interactive=True)
+                    sample_steps = gr.Radio(label=i18n("采样步数(仅对V3/4生效)"), value=32, choices=[4, 8, 16, 32, 64, 128], visible=True)
                 with gr.Row():
-                    fragment_interval = gr.Slider(
-                        minimum=0.01, maximum=1, step=0.01, label=i18n("分段间隔(秒)"), value=0.3, interactive=True
-                    )
-                    speed_factor = gr.Slider(
-                        minimum=0.6, maximum=1.65, step=0.05, label="语速", value=1.0, interactive=True
-                    )
+                    fragment_interval = gr.Slider(minimum=0.01, maximum=1, step=0.01, label=i18n("分段间隔(秒)"), value=0.3, interactive=True)
+                    speed_factor = gr.Slider(minimum=0.6, maximum=1.65, step=0.05, label="语速", value=1.0, interactive=True)
                 with gr.Row():
                     top_k = gr.Slider(minimum=1, maximum=100, step=1, label=i18n("top_k"), value=5, interactive=True)
                     top_p = gr.Slider(minimum=0, maximum=1, step=0.05, label=i18n("top_p"), value=1, interactive=True)
                 with gr.Row():
-                    temperature = gr.Slider(
-                        minimum=0, maximum=1, step=0.05, label=i18n("temperature"), value=1, interactive=True
-                    )
-                    repetition_penalty = gr.Slider(
-                        minimum=0, maximum=2, step=0.05, label=i18n("重复惩罚"), value=1.35, interactive=True
-                    )
+                    temperature = gr.Slider(minimum=0, maximum=1, step=0.05, label=i18n("temperature"), value=1, interactive=True)
+                    repetition_penalty = gr.Slider(minimum=0, maximum=2, step=0.05, label=i18n("重复惩罚"), value=1.35, interactive=True)
 
             with gr.Column():
                 with gr.Row():
@@ -434,9 +420,7 @@ with gr.Blocks(title="GPT-SoVITS WebUI") as app:
                         interactive=True,
                         scale=1,
                     )
-                    super_sampling = gr.Checkbox(
-                        label=i18n("音频超采样(仅对V3生效))"), value=False, interactive=True, show_label=True
-                    )
+                    super_sampling = gr.Checkbox(label=i18n("音频超采样(仅对V3生效))"), value=False, interactive=True, show_label=True)
 
                 with gr.Row():
                     parallel_infer = gr.Checkbox(label=i18n("并行推理"), value=True, interactive=True, show_label=True)
@@ -503,11 +487,7 @@ with gr.Blocks(title="GPT-SoVITS WebUI") as app:
         GPT_dropdown.change(tts_pipeline.init_t2s_weights, [GPT_dropdown], [])
 
     with gr.Group():
-        gr.Markdown(
-            value=i18n(
-                "文本切分工具。太长的文本合成出来效果不一定好，所以太长建议先切。合成会根据文本的换行分开合成再拼起来。"
-            )
-        )
+        gr.Markdown(value=i18n("文本切分工具。太长的文本合成出来效果不一定好，所以太长建议先切。合成会根据文本的换行分开合成再拼起来。"))
         with gr.Row():
             text_inp = gr.Textbox(label=i18n("需要合成的切分前文本"), value="", lines=4)
             with gr.Column():

@@ -39,9 +39,7 @@ def prepare_onnx_input(
     max_len: int = 512,
 ) -> Dict[str, np.array]:
     if window_size is not None:
-        truncated_texts, truncated_query_ids = _truncate_texts(
-            window_size=window_size, texts=texts, query_ids=query_ids
-        )
+        truncated_texts, truncated_query_ids = _truncate_texts(window_size=window_size, texts=texts, query_ids=query_ids)
     input_ids = []
     token_type_ids = []
     attention_masks = []
@@ -70,9 +68,7 @@ def prepare_onnx_input(
         attention_mask = list(np.ones((len(processed_tokens),), dtype=int))
 
         query_char = text[query_id]
-        phoneme_mask = (
-            [1 if i in char2phonemes[query_char] else 0 for i in range(len(labels))] if use_mask else [1] * len(labels)
-        )
+        phoneme_mask = [1 if i in char2phonemes[query_char] else 0 for i in range(len(labels))] if use_mask else [1] * len(labels)
         char_id = chars.index(query_char)
         position_id = text2token[query_id] + 1  # [CLS] token locate at first place
 
@@ -108,9 +104,7 @@ def _truncate_texts(window_size: int, texts: List[str], query_ids: List[int]) ->
     return truncated_texts, truncated_query_ids
 
 
-def _truncate(
-    max_len: int, text: str, query_id: int, tokens: List[str], text2token: List[int], token2text: List[Tuple[int]]
-):
+def _truncate(max_len: int, text: str, query_id: int, tokens: List[str], text2token: List[int], token2text: List[Tuple[int]]):
     truncate_len = max_len - 2
     if len(tokens) <= truncate_len:
         return (text, query_id, tokens, text2token, token2text)

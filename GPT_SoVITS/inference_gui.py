@@ -22,13 +22,14 @@ class GPTSoVITSGUI(QMainWindow):
         self.setWindowTitle("GPT-SoVITS GUI")
         self.setGeometry(800, 450, 950, 850)
 
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QWidget {
-                background-color: #a3d3b1; 
+                background-color: #a3d3b1;
             }
 
             QTabWidget::pane {
-                background-color: #a3d3b1;  
+                background-color: #a3d3b1;
             }
 
             QTabWidget::tab-bar {
@@ -36,33 +37,34 @@ class GPTSoVITSGUI(QMainWindow):
             }
 
             QTabBar::tab {
-                background: #8da4bf; 
-                color: #ffffff;  
+                background: #8da4bf;
+                color: #ffffff;
                 padding: 8px;
             }
 
             QTabBar::tab:selected {
-                background: #2a3f54; 
+                background: #2a3f54;
             }
 
             QLabel {
-                color: #000000;  
+                color: #000000;
             }
 
             QPushButton {
-                background-color: #4CAF50; 
-                color: white;  
+                background-color: #4CAF50;
+                color: white;
                 padding: 8px;
                 border: 1px solid #4CAF50;
                 border-radius: 4px;
             }
 
             QPushButton:hover {
-                background-color: #45a049;  
+                background-color: #45a049;
                 border: 1px solid #45a049;
                 box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
             }
-        """)
+        """
+        )
 
         license_text = (
             "本软件以MIT协议开源, 作者不对软件具备任何控制力, 使用软件者、传播软件导出的声音者自负全责. "

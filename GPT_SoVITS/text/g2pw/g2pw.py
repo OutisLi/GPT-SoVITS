@@ -46,9 +46,7 @@ class G2PWPinyin(Pinyin):
 
 class Converter(UltimateConverter):
     def __init__(self, g2pw_instance, v_to_u=False, neutral_tone_with_five=False, tone_sandhi=False, **kwargs):
-        super(Converter, self).__init__(
-            v_to_u=v_to_u, neutral_tone_with_five=neutral_tone_with_five, tone_sandhi=tone_sandhi, **kwargs
-        )
+        super(Converter, self).__init__(v_to_u=v_to_u, neutral_tone_with_five=neutral_tone_with_five, tone_sandhi=tone_sandhi, **kwargs)
 
         self._g2pw = g2pw_instance
 

@@ -194,23 +194,21 @@ def run(rank, n_gpus, hps):
         # traceback.print_exc()
         epoch_str = 1
         global_step = 0
-        if (
-            hps.train.pretrained_s2G != ""
-            and hps.train.pretrained_s2G != None
-            and os.path.exists(hps.train.pretrained_s2G)
-        ):
+        if hps.train.pretrained_s2G != "" and hps.train.pretrained_s2G != None and os.path.exists(hps.train.pretrained_s2G):
             if rank == 0:
                 logger.info("loaded pretrained %s" % hps.train.pretrained_s2G)
             print(
                 "loaded pretrained %s" % hps.train.pretrained_s2G,
-                net_g.module.load_state_dict(
-                    torch.load(hps.train.pretrained_s2G, map_location="cpu")["weight"],
-                    strict=False,
-                )
-                if torch.cuda.is_available()
-                else net_g.load_state_dict(
-                    torch.load(hps.train.pretrained_s2G, map_location="cpu")["weight"],
-                    strict=False,
+                (
+                    net_g.module.load_state_dict(
+                        torch.load(hps.train.pretrained_s2G, map_location="cpu")["weight"],
+                        strict=False,
+                    )
+                    if torch.cuda.is_available()
+                    else net_g.load_state_dict(
+                        torch.load(hps.train.pretrained_s2G, map_location="cpu")["weight"],
+                        strict=False,
+                    )
                 ),
             )  ##测试不加载优化器
         # if hps.train.pretrained_s2D != ""and hps.train.pretrained_s2D != None and os.path.exists(hps.train.pretrained_s2D):
@@ -306,9 +304,7 @@ def train_and_evaluate(
     #     text,
     #     text_lengths,
     # ) in enumerate(tqdm(train_loader)):
-    for batch_idx, (ssl, spec, mel, ssl_lengths, spec_lengths, text, text_lengths, mel_lengths) in enumerate(
-        tqdm(train_loader)
-    ):
+    for batch_idx, (ssl, spec, mel, ssl_lengths, spec_lengths, text, text_lengths, mel_lengths) in enumerate(tqdm(train_loader)):
         if torch.cuda.is_available():
             spec, spec_lengths = (
                 spec.cuda(

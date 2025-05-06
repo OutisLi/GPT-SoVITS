@@ -290,9 +290,7 @@ def check_params(req: dict):
         return JSONResponse(status_code=400, content={"message": "ogg format is not supported in non-streaming mode"})
 
     if text_split_method not in cut_method_names:
-        return JSONResponse(
-            status_code=400, content={"message": f"text_split_method:{text_split_method} is not supported"}
-        )
+        return JSONResponse(status_code=400, content={"message": f"text_split_method:{text_split_method} is not supported"})
 
     return None
 

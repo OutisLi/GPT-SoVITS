@@ -13,8 +13,7 @@ normalizer = lambda x: cn2an.transform(x, "an2cn")
 
 current_file_path = os.path.dirname(__file__)
 pinyin_to_symbol_map = {
-    line.split("\t")[0]: line.strip().split("\t")[1]
-    for line in open(os.path.join(current_file_path, "opencpop-strict.txt")).readlines()
+    line.split("\t")[0]: line.strip().split("\t")[1] for line in open(os.path.join(current_file_path, "opencpop-strict.txt")).readlines()
 }
 
 import jieba_fast
@@ -162,13 +161,7 @@ def _merge_erhua(initials: list[str], finals: list[str], word: str, pos: str) ->
     new_initials = []
     new_finals = []
     for i, phn in enumerate(finals):
-        if (
-            i == len(finals) - 1
-            and word[i] == "儿"
-            and phn in {"er2", "er5"}
-            and word[-2:] not in not_erhua
-            and new_finals
-        ):
+        if i == len(finals) - 1 and word[i] == "儿" and phn in {"er2", "er5"} and word[-2:] not in not_erhua and new_finals:
             phn = "er" + new_finals[-1][-1]
 
         new_initials.append(initials[i])

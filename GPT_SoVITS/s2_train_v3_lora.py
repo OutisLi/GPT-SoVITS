@@ -31,7 +31,6 @@ from module.data_utils import (
     TextAudioSpeakerLoaderV3,
     TextAudioSpeakerCollateV4,
     TextAudioSpeakerLoaderV4,
-
 )
 from module.models import (
     SynthesizerTrnV3 as SynthesizerTrn,
@@ -88,8 +87,8 @@ def run(rank, n_gpus, hps):
     if torch.cuda.is_available():
         torch.cuda.set_device(rank)
 
-    TextAudioSpeakerLoader=TextAudioSpeakerLoaderV3 if hps.model.version=="v3"else TextAudioSpeakerLoaderV4
-    TextAudioSpeakerCollate=TextAudioSpeakerCollateV3 if hps.model.version=="v3"else TextAudioSpeakerCollateV4
+    TextAudioSpeakerLoader = TextAudioSpeakerLoaderV3 if hps.model.version == "v3" else TextAudioSpeakerLoaderV4
+    TextAudioSpeakerCollate = TextAudioSpeakerCollateV3 if hps.model.version == "v3" else TextAudioSpeakerCollateV4
     train_dataset = TextAudioSpeakerLoader(hps.data)  ########
     train_sampler = DistributedBucketSampler(
         train_dataset,
@@ -180,11 +179,7 @@ def run(rank, n_gpus, hps):
         epoch_str = 1
         global_step = 0
         net_g = get_model(hps)
-        if (
-            hps.train.pretrained_s2G != ""
-            and hps.train.pretrained_s2G != None
-            and os.path.exists(hps.train.pretrained_s2G)
-        ):
+        if hps.train.pretrained_s2G != "" and hps.train.pretrained_s2G != None and os.path.exists(hps.train.pretrained_s2G):
             if rank == 0:
                 logger.info("loaded pretrained %s" % hps.train.pretrained_s2G)
             print(
@@ -258,9 +253,7 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
     global global_step
 
     net_g.train()
-    for batch_idx, (ssl, spec, mel, ssl_lengths, spec_lengths, text, text_lengths, mel_lengths) in enumerate(
-        tqdm(train_loader)
-    ):
+    for batch_idx, (ssl, spec, mel, ssl_lengths, spec_lengths, text, text_lengths, mel_lengths) in enumerate(tqdm(train_loader)):
         if torch.cuda.is_available():
             spec, spec_lengths = (
                 spec.cuda(
@@ -365,7 +358,8 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
                         hps.name + "_e%s_s%s_l%s" % (epoch, global_step, lora_rank),
                         epoch,
                         global_step,
-                        hps,cfm_version=hps.model.version,
+                        hps,
+                        cfm_version=hps.model.version,
                         lora_rank=lora_rank,
                     ),
                 )

@@ -11,9 +11,7 @@ from pathlib import Path
 import fast_langdetect
 
 fast_langdetect.infer._default_detector = fast_langdetect.infer.LangDetector(
-    fast_langdetect.infer.LangDetectConfig(
-        cache_dir=Path(__file__).parent.parent.parent / "pretrained_models" / "fast_langdetect"
-    )
+    fast_langdetect.infer.LangDetectConfig(cache_dir=Path(__file__).parent.parent.parent / "pretrained_models" / "fast_langdetect")
 )
 
 

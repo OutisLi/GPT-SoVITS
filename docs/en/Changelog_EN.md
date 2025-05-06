@@ -167,10 +167,10 @@
 
 1. [PR 1306](https://github.com/RVC-Boss/GPT-SoVITS/pull/1306), [PR 1356](https://github.com/RVC-Boss/GPT-SoVITS/pull/1356) Added support for the BS RoFormer vocal accompaniment separation model. [Commit e62e965](https://github.com/RVC-Boss/GPT-SoVITS/commit/e62e965323a60a76a025bcaa45268c1ddcbcf05c) Enabled FP16 inference.
 2. Improved Chinese text frontend.
-   - [PR 488](https://github.com/RVC-Boss/GPT-SoVITS/pull/488) added support for polyphonic characters (v2 only);
-   - [PR 987](https://github.com/RVC-Boss/GPT-SoVITS/pull/987) added quantifier;
-   - [PR 1351](https://github.com/RVC-Boss/GPT-SoVITS/pull/1351) supports arithmetic and basic math formulas;
-   - [PR 1404](https://github.com/RVC-Boss/GPT-SoVITS/pull/1404) fixed mixed text errors.
+    - [PR 488](https://github.com/RVC-Boss/GPT-SoVITS/pull/488) added support for polyphonic characters (v2 only);
+    - [PR 987](https://github.com/RVC-Boss/GPT-SoVITS/pull/987) added quantifier;
+    - [PR 1351](https://github.com/RVC-Boss/GPT-SoVITS/pull/1351) supports arithmetic and basic math formulas;
+    - [PR 1404](https://github.com/RVC-Boss/GPT-SoVITS/pull/1404) fixed mixed text errors.
 3. [PR 1355](https://github.com/RVC-Boss/GPT-SoVITS/pull/1356) automatically filled in the paths when processing audio in the WebUI.
 4. [Commit bce451a](https://github.com/RVC-Boss/GPT-SoVITS/commit/bce451a2d1641e581e200297d01f219aeaaf7299), [Commit 4c8b761](https://github.com/RVC-Boss/GPT-SoVITS/commit/4c8b7612206536b8b4435997acb69b25d93acb78) optimized GPU recognition logic.
 5. [Commit 8a10147](https://github.com/RVC-Boss/GPT-SoVITS/commit/8a101474b5a4f913b4c94fca2e3ca87d0771bae3) added support for Cantonese ASR.
@@ -186,24 +186,24 @@
 
 ### 20250211 Update
 
-- [Wiki](https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90v3%E2%80%90features-(%E6%96%B0%E7%89%B9%E6%80%A7)) Added GPT-SoVITS v3 Model, Need 14GB GPU Memory to Fine-tune SoVITS v3.
+-   [Wiki](<https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90v3%E2%80%90features-(%E6%96%B0%E7%89%B9%E6%80%A7)>) Added GPT-SoVITS v3 Model, Need 14GB GPU Memory to Fine-tune SoVITS v3.
 
 ### 20250212 Update
 
-- [PR 2040](https://github.com/RVC-Boss/GPT-SoVITS/pull/2040) Added gradient checkpointing to Fine-tune SoVITS v3, Need 12GB GPU Memory.
+-   [PR 2040](https://github.com/RVC-Boss/GPT-SoVITS/pull/2040) Added gradient checkpointing to Fine-tune SoVITS v3, Need 12GB GPU Memory.
 
 ### 20250214 Update
 
-- [PR 2047](https://github.com/RVC-Boss/GPT-SoVITS/pull/2047) Optimize the multilingual mixed text segmentation strategy **A**.
-  -AAdded `split-lang` as a language segmentation tool to improve segmentation capabilities for multi-language mixed text.
+-   [PR 2047](https://github.com/RVC-Boss/GPT-SoVITS/pull/2047) Optimize the multilingual mixed text segmentation strategy **A**.
+    -AAdded `split-lang` as a language segmentation tool to improve segmentation capabilities for multi-language mixed text.
 
 ### 20250217 Update
 
-- [PR 2062](https://github.com/RVC-Boss/GPT-SoVITS/pull/2062) Optimize the logic for handling numbers and English in the text.
+-   [PR 2062](https://github.com/RVC-Boss/GPT-SoVITS/pull/2062) Optimize the logic for handling numbers and English in the text.
 
 ### 20250218 Update
 
-- [PR 2073](https://github.com/RVC-Boss/GPT-SoVITS/pull/2073) Optimize the multilingual mixed text segmentation strategy **B**.
+-   [PR 2073](https://github.com/RVC-Boss/GPT-SoVITS/pull/2073) Optimize the multilingual mixed text segmentation strategy **B**.
 
 ### 20250223 Update
 
@@ -213,10 +213,10 @@
 ### 20250226 Update
 
 1. [PR 2112](https://github.com/RVC-Boss/GPT-SoVITS/pull/2112) Fix issues caused by non-English directories in Windows.
-   - Using `langsegmenter` for Korean.
+    - Using `langsegmenter` for Korean.
 2. [PR 2113](https://github.com/RVC-Boss/GPT-SoVITS/pull/2114) Fix issues caused by non-English directories in Windows.
-   - Using `langsegmenter` for Korean/Japanese.
+    - Using `langsegmenter` for Korean/Japanese.
 
 ### 20250227 Update
 
-- Added 24K to 48K audio super-resolution models to alleviate the muffled issue when generating 24K audio with V3 model, as reported in [Issue 2085](https://github.com/RVC-Boss/GPT-SoVITS/issues/2085), [Issue 2117](https://github.com/RVC-Boss/GPT-SoVITS/issues/2117).
+-   Added 24K to 48K audio super-resolution models to alleviate the muffled issue when generating 24K audio with V3 model, as reported in [Issue 2085](https://github.com/RVC-Boss/GPT-SoVITS/issues/2085), [Issue 2117](https://github.com/RVC-Boss/GPT-SoVITS/issues/2117).

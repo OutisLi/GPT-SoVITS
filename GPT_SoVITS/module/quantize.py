@@ -84,9 +84,7 @@ class ResidualVectorQuantizer(nn.Module):
         """
         n_q = n_q if n_q else self.n_q
         if layers and max(layers) >= n_q:
-            raise ValueError(
-                f"Last layer index in layers: A {max(layers)}. Number of quantizers in RVQ: B {self.n_q}. A must less than B."
-            )
+            raise ValueError(f"Last layer index in layers: A {max(layers)}. Number of quantizers in RVQ: B {self.n_q}. A must less than B.")
         quantized, codes, commit_loss, quantized_list = self.vq(x, n_q=n_q, layers=layers)
         return quantized, codes, torch.mean(commit_loss), quantized_list
 

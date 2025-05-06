@@ -89,9 +89,7 @@ def train(rank, a, h):
     # New in BigVGAN-v2: option to switch to multi-scale L1 mel loss
     if h.get("use_multiscale_melloss", False):
         print("[INFO] using multi-scale Mel l1 loss of BigVGAN-v2 instead of the original single-scale loss")
-        fn_mel_loss_multiscale = MultiScaleMelSpectrogramLoss(
-            sampling_rate=h.sampling_rate
-        )  # NOTE: accepts waveform as input
+        fn_mel_loss_multiscale = MultiScaleMelSpectrogramLoss(sampling_rate=h.sampling_rate)  # NOTE: accepts waveform as input
     else:
         fn_mel_loss_singlescale = F.l1_loss
 
@@ -259,7 +257,7 @@ def train(rank, a, h):
 
     """
     Validation loop, "mode" parameter is automatically defined as (seen or unseen)_(name of the dataset).
-    If the name of the dataset contains "nonspeech", it skips PESQ calculation to prevent errors 
+    If the name of the dataset contains "nonspeech", it skips PESQ calculation to prevent errors
     """
 
     def validate(rank, a, h, loader, mode="seen"):

@@ -44,15 +44,15 @@ For users in China, you can [click here](https://www.codewithgpu.com/i/RVC-Boss/
 
 ### Tested Environments
 
-| Python Version | PyTorch Version  | Device          |
-|----------------|------------------|-----------------|
-| Python 3.9     | PyTorch 2.0.1    | CUDA 11.8       |
-| Python 3.10.13 | PyTorch 2.1.2    | CUDA 12.3       |
-| Python 3.10.17 | PyTorch 2.5.1    | CUDA 12.4       |
-| Python 3.9     | PyTorch 2.5.1    | Apple silicon   |
-| Python 3.11    | PyTorch 2.6.0    | Apple silicon   |
-| Python 3.9     | PyTorch 2.2.2    | CPU             |
-| Python 3.9     | PyTorch 2.8.0dev | CUDA12.8(for Nvidia50x0)  |
+| Python Version | PyTorch Version  | Device                   |
+| -------------- | ---------------- | ------------------------ |
+| Python 3.9     | PyTorch 2.0.1    | CUDA 11.8                |
+| Python 3.10.13 | PyTorch 2.1.2    | CUDA 12.3                |
+| Python 3.10.17 | PyTorch 2.5.1    | CUDA 12.4                |
+| Python 3.9     | PyTorch 2.5.1    | Apple silicon            |
+| Python 3.11    | PyTorch 2.6.0    | Apple silicon            |
+| Python 3.9     | PyTorch 2.2.2    | CPU                      |
+| Python 3.9     | PyTorch 2.8.0dev | CUDA12.8(for Nvidia50x0) |
 
 ### Windows
 
@@ -123,8 +123,8 @@ pip install -r requirements.txt
 #### docker-compose.yaml configuration
 
 0. Regarding image tags: Due to rapid updates in the codebase and the slow process of packaging and testing images, please check [Docker Hub](https://hub.docker.com/r/breakstring/gpt-sovits)(outdated) for the currently packaged latest images and select as per your situation, or alternatively, build locally using a Dockerfile according to your own needs.
-1. Environment Variables: 
-   - is_half: Controls half-precision/double-precision. This is typically the cause if the content under the directories 4-cnhubert/5-wav32k is not generated correctly during the "SSL extracting" step. Adjust to True or False based on your actual situation.
+1. Environment Variables:
+    - is_half: Controls half-precision/double-precision. This is typically the cause if the content under the directories 4-cnhubert/5-wav32k is not generated correctly during the "SSL extracting" step. Adjust to True or False based on your actual situation.
 2. Volumes Configuration, The application's root directory inside the container is set to /workspace. The default docker-compose.yaml lists some practical examples for uploading/downloading content.
 3. shm_size: The default available memory for Docker Desktop on Windows is too small, which can cause abnormal operations. Adjust according to your own situation.
 4. Under the deploy section, GPU-related settings should be adjusted cautiously according to your system and actual circumstances.
@@ -155,9 +155,9 @@ docker run --rm -it --gpus=all --env=is_half=False --volume=G:\GPT-SoVITS-Docker
 
 3. For UVR5 (Vocals/Accompaniment Separation & Reverberation Removal, additionally), download models from [UVR5 Weights](https://huggingface.co/lj1995/VoiceConversionWebUI/tree/main/uvr5_weights) and place them in `tools/uvr5/uvr5_weights`.
 
-   - If you want to use `bs_roformer` or `mel_band_roformer` models for UVR5, you can manually download the model and corresponding configuration file, and put them in `tools/uvr5/uvr5_weights`. **Rename the model file and configuration file, ensure that the model and configuration files have the same and corresponding names except for the suffix**. In addition, the model and configuration file names **must include `roformer`** in order to be recognized as models of the roformer class.
+    - If you want to use `bs_roformer` or `mel_band_roformer` models for UVR5, you can manually download the model and corresponding configuration file, and put them in `tools/uvr5/uvr5_weights`. **Rename the model file and configuration file, ensure that the model and configuration files have the same and corresponding names except for the suffix**. In addition, the model and configuration file names **must include `roformer`** in order to be recognized as models of the roformer class.
 
-   - The suggestion is to **directly specify the model type** in the model name and configuration file name, such as `mel_mand_roformer`, `bs_roformer`. If not specified, the features will be compared from the configuration file to determine which type of model it is. For example, the model `bs_roformer_ep_368_sdr_12.9628.ckpt` and its corresponding configuration file `bs_roformer_ep_368_sdr_12.9628.yaml` are a pair, `kim_mel_band_roformer.ckpt` and `kim_mel_band_roformer.yaml` are also a pair.
+    - The suggestion is to **directly specify the model type** in the model name and configuration file name, such as `mel_mand_roformer`, `bs_roformer`. If not specified, the features will be compared from the configuration file to determine which type of model it is. For example, the model `bs_roformer_ep_368_sdr_12.9628.ckpt` and its corresponding configuration file `bs_roformer_ep_368_sdr_12.9628.yaml` are a pair, `kim_mel_band_roformer.ckpt` and `kim_mel_band_roformer.yaml` are also a pair.
 
 4. For Chinese ASR (additionally), download models from [Damo ASR Model](https://modelscope.cn/models/damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch/files), [Damo VAD Model](https://modelscope.cn/models/damo/speech_fsmn_vad_zh-cn-16k-common-pytorch/files), and [Damo Punc Model](https://modelscope.cn/models/damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch/files) and place them in `tools/asr/models`.
 
@@ -173,11 +173,11 @@ vocal_path|speaker_name|language|text
 
 Language dictionary:
 
-- 'zh': Chinese
-- 'ja': Japanese
-- 'en': English
-- 'ko': Korean
-- 'yue': Cantonese
+-   'zh': Chinese
+-   'ja': Japanese
+-   'en': English
+-   'ko': Korean
+-   'yue': Cantonese
 
 Example:
 
@@ -251,7 +251,7 @@ New Features:
 
 4. Improved synthesis quality for low-quality reference audio
 
-   [more details](<https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90v2%E2%80%90features-(%E6%96%B0%E7%89%B9%E6%80%A7)>)
+    [more details](<https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90v2%E2%80%90features-(%E6%96%B0%E7%89%B9%E6%80%A7)>)
 
 Use v2 from v1 environment:
 
@@ -261,7 +261,7 @@ Use v2 from v1 environment:
 
 3. Download v2 pretrained models from [huggingface](https://huggingface.co/lj1995/GPT-SoVITS/tree/main/gsv-v2final-pretrained) and put them into `GPT_SoVITS\pretrained_models\gsv-v2final-pretrained`.
 
-   Chinese v2 additional: [G2PWModel.zip(HF)](https://huggingface.co/XXXXRT/GPT-SoVITS-Pretrained/resolve/main/G2PWModel.zip)| [G2PWModel.zip(ModelScope)](https://www.modelscope.cn/models/XXXXRT/GPT-SoVITS-Pretrained/resolve/master/G2PWModel.zip)(Download G2PW models, unzip and rename to `G2PWModel`, and then place them in `GPT_SoVITS/text`.)
+    Chinese v2 additional: [G2PWModel.zip(HF)](https://huggingface.co/XXXXRT/GPT-SoVITS-Pretrained/resolve/main/G2PWModel.zip)| [G2PWModel.zip(ModelScope)](https://www.modelscope.cn/models/XXXXRT/GPT-SoVITS-Pretrained/resolve/master/G2PWModel.zip)(Download G2PW models, unzip and rename to `G2PWModel`, and then place them in `GPT_SoVITS/text`.)
 
 ## V3 Release Notes
 
@@ -271,7 +271,7 @@ New Features:
 
 2. GPT model is more stable, with fewer repetitions and omissions, and it is easier to generate speech with richer emotional expression.
 
-   [more details](<https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90v3v4%E2%80%90features-(%E6%96%B0%E7%89%B9%E6%80%A7)>)
+    [more details](<https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90v3v4%E2%80%90features-(%E6%96%B0%E7%89%B9%E6%80%A7)>)
 
 Use v3 from v2 environment:
 
@@ -281,7 +281,7 @@ Use v3 from v2 environment:
 
 3. Download v3 pretrained models (s1v3.ckpt, s2Gv3.pth and models--nvidia--bigvgan_v2_24khz_100band_256x folder) from [huggingface](https://huggingface.co/lj1995/GPT-SoVITS/tree/main) and put them into `GPT_SoVITS\pretrained_models`.
 
-   additional: for Audio Super Resolution model, you can read [how to download](./tools/AP_BWE_main/24kto48k/readme.txt)
+    additional: for Audio Super Resolution model, you can read [how to download](./tools/AP_BWE_main/24kto48k/readme.txt)
 
 ## V4 Release Notes
 
@@ -300,23 +300,23 @@ Use v4 from v1/v2/v3 environment:
 
 ## Todo List
 
-- [x] **High Priority:**
+-   [x] **High Priority:**
 
-  - [x] Localization in Japanese and English.
-  - [x] User guide.
-  - [x] Japanese and English dataset fine tune training.
+    -   [x] Localization in Japanese and English.
+    -   [x] User guide.
+    -   [x] Japanese and English dataset fine tune training.
 
-- [ ] **Features:**
-  - [x] Zero-shot voice conversion (5s) / few-shot voice conversion (1min).
-  - [x] TTS speaking speed control.
-  - [ ] ~~Enhanced TTS emotion control.~~ Maybe use pretrained finetuned preset GPT models for better emotion.
-  - [ ] Experiment with changing SoVITS token inputs to probability distribution of GPT vocabs (transformer latent).
-  - [x] Improve English and Japanese text frontend.
-  - [ ] Develop tiny and larger-sized TTS models.
-  - [x] Colab scripts.
-  - [x] Try expand training dataset (2k hours -> 10k hours).
-  - [x] better sovits base model (enhanced audio quality)
-  - [ ] model mix
+-   [ ] **Features:**
+    -   [x] Zero-shot voice conversion (5s) / few-shot voice conversion (1min).
+    -   [x] TTS speaking speed control.
+    -   [ ] ~~Enhanced TTS emotion control.~~ Maybe use pretrained finetuned preset GPT models for better emotion.
+    -   [ ] Experiment with changing SoVITS token inputs to probability distribution of GPT vocabs (transformer latent).
+    -   [x] Improve English and Japanese text frontend.
+    -   [ ] Develop tiny and larger-sized TTS models.
+    -   [x] Colab scripts.
+    -   [x] Try expand training dataset (2k hours -> 10k hours).
+    -   [x] better sovits base model (enhanced audio quality)
+    -   [ ] model mix
 
 ## (Additional) Method for running from the command line
 
@@ -365,40 +365,40 @@ Special thanks to the following projects and contributors:
 
 ### Theoretical Research
 
-- [ar-vits](https://github.com/innnky/ar-vits)
-- [SoundStorm](https://github.com/yangdongchao/SoundStorm/tree/master/soundstorm/s1/AR)
-- [vits](https://github.com/jaywalnut310/vits)
-- [TransferTTS](https://github.com/hcy71o/TransferTTS/blob/master/models.py#L556)
-- [contentvec](https://github.com/auspicious3000/contentvec/)
-- [hifi-gan](https://github.com/jik876/hifi-gan)
-- [fish-speech](https://github.com/fishaudio/fish-speech/blob/main/tools/llama/generate.py#L41)
-- [f5-TTS](https://github.com/SWivid/F5-TTS/blob/main/src/f5_tts/model/backbones/dit.py)
-- [shortcut flow matching](https://github.com/kvfrans/shortcut-models/blob/main/targets_shortcut.py)
+-   [ar-vits](https://github.com/innnky/ar-vits)
+-   [SoundStorm](https://github.com/yangdongchao/SoundStorm/tree/master/soundstorm/s1/AR)
+-   [vits](https://github.com/jaywalnut310/vits)
+-   [TransferTTS](https://github.com/hcy71o/TransferTTS/blob/master/models.py#L556)
+-   [contentvec](https://github.com/auspicious3000/contentvec/)
+-   [hifi-gan](https://github.com/jik876/hifi-gan)
+-   [fish-speech](https://github.com/fishaudio/fish-speech/blob/main/tools/llama/generate.py#L41)
+-   [f5-TTS](https://github.com/SWivid/F5-TTS/blob/main/src/f5_tts/model/backbones/dit.py)
+-   [shortcut flow matching](https://github.com/kvfrans/shortcut-models/blob/main/targets_shortcut.py)
 
 ### Pretrained Models
 
-- [Chinese Speech Pretrain](https://github.com/TencentGameMate/chinese_speech_pretrain)
-- [Chinese-Roberta-WWM-Ext-Large](https://huggingface.co/hfl/chinese-roberta-wwm-ext-large)
-- [BigVGAN](https://github.com/NVIDIA/BigVGAN)
+-   [Chinese Speech Pretrain](https://github.com/TencentGameMate/chinese_speech_pretrain)
+-   [Chinese-Roberta-WWM-Ext-Large](https://huggingface.co/hfl/chinese-roberta-wwm-ext-large)
+-   [BigVGAN](https://github.com/NVIDIA/BigVGAN)
 
 ### Text Frontend for Inference
 
-- [paddlespeech zh_normalization](https://github.com/PaddlePaddle/PaddleSpeech/tree/develop/paddlespeech/t2s/frontend/zh_normalization)
-- [split-lang](https://github.com/DoodleBears/split-lang)
-- [g2pW](https://github.com/GitYCC/g2pW)
-- [pypinyin-g2pW](https://github.com/mozillazg/pypinyin-g2pW)
-- [paddlespeech g2pw](https://github.com/PaddlePaddle/PaddleSpeech/tree/develop/paddlespeech/t2s/frontend/g2pw)
+-   [paddlespeech zh_normalization](https://github.com/PaddlePaddle/PaddleSpeech/tree/develop/paddlespeech/t2s/frontend/zh_normalization)
+-   [split-lang](https://github.com/DoodleBears/split-lang)
+-   [g2pW](https://github.com/GitYCC/g2pW)
+-   [pypinyin-g2pW](https://github.com/mozillazg/pypinyin-g2pW)
+-   [paddlespeech g2pw](https://github.com/PaddlePaddle/PaddleSpeech/tree/develop/paddlespeech/t2s/frontend/g2pw)
 
 ### WebUI Tools
 
-- [ultimatevocalremovergui](https://github.com/Anjok07/ultimatevocalremovergui)
-- [audio-slicer](https://github.com/openvpi/audio-slicer)
-- [SubFix](https://github.com/cronrpc/SubFix)
-- [FFmpeg](https://github.com/FFmpeg/FFmpeg)
-- [gradio](https://github.com/gradio-app/gradio)
-- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
-- [FunASR](https://github.com/alibaba-damo-academy/FunASR)
-- [AP-BWE](https://github.com/yxlu-0102/AP-BWE)
+-   [ultimatevocalremovergui](https://github.com/Anjok07/ultimatevocalremovergui)
+-   [audio-slicer](https://github.com/openvpi/audio-slicer)
+-   [SubFix](https://github.com/cronrpc/SubFix)
+-   [FFmpeg](https://github.com/FFmpeg/FFmpeg)
+-   [gradio](https://github.com/gradio-app/gradio)
+-   [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+-   [FunASR](https://github.com/alibaba-damo-academy/FunASR)
+-   [AP-BWE](https://github.com/yxlu-0102/AP-BWE)
 
 Thankful to @Naozumi520 for providing the Cantonese training set and for the guidance on Cantonese-related knowledge.
 

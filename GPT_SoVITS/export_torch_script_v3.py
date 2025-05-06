@@ -305,9 +305,7 @@ class GPTSoVITSV3(torch.nn.Module):
     ):
         # current_time = datetime.now()
         # print("gpt_sovits_half",current_time.strftime("%Y-%m-%d %H:%M:%S"))
-        fea_ref, fea_todo, mel2 = self.gpt_sovits_half(
-            ssl_content, ref_audio_32k, phoneme_ids0, phoneme_ids1, bert1, bert2, top_k
-        )
+        fea_ref, fea_todo, mel2 = self.gpt_sovits_half(ssl_content, ref_audio_32k, phoneme_ids0, phoneme_ids1, bert1, bert2, top_k)
         chunk_len = 934 - fea_ref.shape[2]
         wav_gen_list = []
         idx = 0
@@ -567,9 +565,7 @@ def export():
         prompt_semantic = codes[0, 0]
         prompt = prompt_semantic.unsqueeze(0).to(device)
 
-    phones1, bert1, norm_text1 = get_phones_and_bert(
-        "你这老坏蛋，我找了你这么久，真没想到在这里找到你。他说。", "all_zh", "v3"
-    )
+    phones1, bert1, norm_text1 = get_phones_and_bert("你这老坏蛋，我找了你这么久，真没想到在这里找到你。他说。", "all_zh", "v3")
     phones2, bert2, norm_text2 = get_phones_and_bert(
         "这是一个简单的示例，真没想到这么简单就完成了。The King and His Stories.Once there was a king. He likes to write stories, but his stories were not good. As people were afraid of him, they all said his stories were good.After reading them, the writer at once turned to the soldiers and said: Take me back to prison, please.",
         "auto",
@@ -763,9 +759,7 @@ def test_export(
     ref_audio_32k, _ = librosa.load(ref_wav_path, sr=32000)
     ref_audio_32k = torch.from_numpy(ref_audio_32k).unsqueeze(0).to(device).float()
 
-    phones1, bert1, norm_text1 = get_phones_and_bert(
-        "你这老坏蛋，我找了你这么久，真没想到在这里找到你。他说。", "all_zh", "v3"
-    )
+    phones1, bert1, norm_text1 = get_phones_and_bert("你这老坏蛋，我找了你这么久，真没想到在这里找到你。他说。", "all_zh", "v3")
     phones2, bert2, norm_text2 = get_phones_and_bert(
         todo_text,
         "zh",
@@ -789,9 +783,7 @@ def test_export(
         bert2.shape,
         top_k.shape,
     )
-    fea_ref, fea_todo, mel2 = gpt_sovits_v3_half(
-        ssl_content, ref_audio_32k, phoneme_ids0, phoneme_ids1, bert1, bert2, top_k
-    )
+    fea_ref, fea_todo, mel2 = gpt_sovits_v3_half(ssl_content, ref_audio_32k, phoneme_ids0, phoneme_ids1, bert1, bert2, top_k)
     chunk_len = 934 - fea_ref.shape[2]
     print(fea_ref.shape, fea_todo.shape, mel2.shape)
 
@@ -881,9 +873,7 @@ def test_export1(
     ref_audio_32k, _ = librosa.load(ref_wav_path, sr=32000)
     ref_audio_32k = torch.from_numpy(ref_audio_32k).unsqueeze(0).to(device).float()
 
-    phones1, bert1, norm_text1 = get_phones_and_bert(
-        "你这老坏蛋，我找了你这么久，真没想到在这里找到你。他说。", "all_zh", "v3"
-    )
+    phones1, bert1, norm_text1 = get_phones_and_bert("你这老坏蛋，我找了你这么久，真没想到在这里找到你。他说。", "all_zh", "v3")
     phones2, bert2, norm_text2 = get_phones_and_bert(
         todo_text,
         "zh",

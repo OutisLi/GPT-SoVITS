@@ -20,7 +20,7 @@
 
 ---
 
-## 功能: 
+## 功能:
 
 1. **零样本文本到语音 (TTS): ** 输入 5 秒的声音样本, 即刻体验文本到语音转换.
 
@@ -32,7 +32,7 @@
 
 **查看我们的介绍视频 [demo video](https://www.bilibili.com/video/BV12g4y1m7Uw)**
 
-未见过的说话者 few-shot 微调演示: 
+未见过的说话者 few-shot 微调演示:
 
 https://github.com/RVC-Boss/GPT-SoVITS/assets/129054828/05bee1fa-bdd8-4d85-9350-80c060ab47fb
 
@@ -44,14 +44,14 @@ https://github.com/RVC-Boss/GPT-SoVITS/assets/129054828/05bee1fa-bdd8-4d85-9350-
 
 ### 测试通过的环境
 
-| Python Version | PyTorch Version  | Device          |
-|----------------|------------------|-----------------|
-| Python 3.9     | PyTorch 2.0.1    | CUDA 11.8       |
-| Python 3.10.13 | PyTorch 2.1.2    | CUDA 12.3       |
-| Python 3.10.17 | PyTorch 2.5.1    | CUDA 12.4       |
-| Python 3.9     | PyTorch 2.5.1    | Apple silicon   |
-| Python 3.11    | PyTorch 2.6.0    | Apple silicon   |
-| Python 3.9     | PyTorch 2.2.2    | CPU             |
+| Python Version | PyTorch Version | Device        |
+| -------------- | --------------- | ------------- |
+| Python 3.9     | PyTorch 2.0.1   | CUDA 11.8     |
+| Python 3.10.13 | PyTorch 2.1.2   | CUDA 12.3     |
+| Python 3.10.17 | PyTorch 2.5.1   | CUDA 12.4     |
+| Python 3.9     | PyTorch 2.5.1   | Apple silicon |
+| Python 3.11    | PyTorch 2.6.0   | Apple silicon |
+| Python 3.9     | PyTorch 2.2.2   | CPU           |
 
 ### Windows
 
@@ -72,7 +72,7 @@ bash install.sh --source <HF|HF-Mirror|ModelScope> [--download-uvr5]
 **注: 在 Mac 上使用 GPU 训练的模型效果显著低于其他设备训练的模型, 所以我们暂时使用 CPU 进行训练.**
 
 1. 运行 `xcode-select --install` 安装 Xcode command-line tools.
-2. 运行以下的命令来安装本项目: 
+2. 运行以下的命令来安装本项目:
 
 ```bash
 conda create -n GPTSoVits python=3.9
@@ -122,9 +122,9 @@ pip install -r requirements.txt
 #### docker-compose.yaml 设置
 
 0. image 的标签: 由于代码库更新很快, 镜像的打包和测试又很慢, 所以请自行在 [Docker Hub](https://hub.docker.com/r/breakstring/gpt-sovits)(旧版本) 查看当前打包好的最新的镜像并根据自己的情况选用, 或者在本地根据您自己的需求通过 Dockerfile 进行构建.
-1. 环境变量: 
+1. 环境变量:
 
-- is_half: 半精度/双精度控制.在进行 "SSL extracting" 步骤时如果无法正确生成 4-cnhubert/5-wav32k 目录下的内容时, 一般都是它引起的, 可以根据实际情况来调整为 True 或者 False.
+-   is_half: 半精度/双精度控制.在进行 "SSL extracting" 步骤时如果无法正确生成 4-cnhubert/5-wav32k 目录下的内容时, 一般都是它引起的, 可以根据实际情况来调整为 True 或者 False.
 
 2. Volume 设置, 容器内的应用根目录设置为 /workspace. 默认的 docker-compose.yaml 中列出了一些实际的例子, 便于上传/下载内容.
 3. shm_size: Windows 下的 Docker Desktop 默认可用内存过小, 会导致运行异常, 根据自己情况酌情设置.
@@ -138,7 +138,7 @@ docker compose -f "docker-compose.yaml" up -d
 
 #### 通过 docker 命令运行
 
-同上, 根据您自己的实际情况修改对应的参数, 然后运行如下命令: 
+同上, 根据您自己的实际情况修改对应的参数, 然后运行如下命令:
 
 ```
 docker run --rm -it --gpus=all --env=is_half=False --volume=G:\GPT-SoVITS-DockerTest\output:/workspace/output --volume=G:\GPT-SoVITS-DockerTest\logs:/workspace/logs --volume=G:\GPT-SoVITS-DockerTest\SoVITS_weights:/workspace/SoVITS_weights --workdir=/workspace -p 9880:9880 -p 9871:9871 -p 9872:9872 -p 9873:9873 -p 9874:9874 --shm-size="16G" -d breakstring/gpt-sovits:xxxxx
@@ -156,9 +156,9 @@ docker run --rm -it --gpus=all --env=is_half=False --volume=G:\GPT-SoVITS-Docker
 
 3. 对于 UVR5 (人声/伴奏分离和混响移除, 额外功能), 从 [UVR5 Weights](https://huggingface.co/lj1995/VoiceConversionWebUI/tree/main/uvr5_weights) 下载模型, 并将其放置在 `tools/uvr5/uvr5_weights` 目录中.
 
-   - 如果你在 UVR5 中使用 `bs_roformer` 或 `mel_band_roformer`模型, 你可以手动下载模型和相应的配置文件, 并将它们放在 `tools/UVR5/UVR5_weights` 中.**重命名模型文件和配置文件, 确保除后缀外**, 模型和配置文件具有相同且对应的名称.此外, 模型和配置文件名**必须包含"roformer"**, 才能被识别为 roformer 类的模型.
+    - 如果你在 UVR5 中使用 `bs_roformer` 或 `mel_band_roformer`模型, 你可以手动下载模型和相应的配置文件, 并将它们放在 `tools/UVR5/UVR5_weights` 中.**重命名模型文件和配置文件, 确保除后缀外**, 模型和配置文件具有相同且对应的名称.此外, 模型和配置文件名**必须包含"roformer"**, 才能被识别为 roformer 类的模型.
 
-   - 建议在模型名称和配置文件名中**直接指定模型类型**, 例如`mel_mand_roformer`、`bs_roformer`.如果未指定, 将从配置文中比对特征, 以确定它是哪种类型的模型.例如, 模型`bs_roformer_ep_368_sdr_12.9628.ckpt` 和对应的配置文件`bs_roformer_ep_368_sdr_12.9628.yaml` 是一对.`kim_mel_band_roformer.ckpt` 和 `kim_mel_band_roformer.yaml` 也是一对.
+    - 建议在模型名称和配置文件名中**直接指定模型类型**, 例如`mel_mand_roformer`、`bs_roformer`.如果未指定, 将从配置文中比对特征, 以确定它是哪种类型的模型.例如, 模型`bs_roformer_ep_368_sdr_12.9628.ckpt` 和对应的配置文件`bs_roformer_ep_368_sdr_12.9628.yaml` 是一对.`kim_mel_band_roformer.ckpt` 和 `kim_mel_band_roformer.yaml` 也是一对.
 
 4. 对于中文 ASR (额外功能), 从 [Damo ASR Model](https://modelscope.cn/models/damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch/files)、[Damo VAD Model](https://modelscope.cn/models/damo/speech_fsmn_vad_zh-cn-16k-common-pytorch/files) 和 [Damo Punc Model](https://modelscope.cn/models/damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch/files) 下载模型, 并将它们放置在 `tools/asr/models` 目录中.
 
@@ -166,21 +166,21 @@ docker run --rm -it --gpus=all --env=is_half=False --volume=G:\GPT-SoVITS-Docker
 
 ## 数据集格式
 
-文本到语音 (TTS) 注释 .list 文件格式: 
+文本到语音 (TTS) 注释 .list 文件格式:
 
 ```
 vocal_path|speaker_name|language|text
 ```
 
-语言字典: 
+语言字典:
 
-- 'zh': 中文
-- 'ja': 日语
-- 'en': 英语
-- 'ko': 韩语
-- 'yue': 粤语
+-   'zh': 中文
+-   'ja': 日语
+-   'en': 英语
+-   'ko': 韩语
+-   'yue': 粤语
 
-示例: 
+示例:
 
 ```
 D:\GPT-SoVITS\xxx/xxx.wav|xxx|zh|我爱玩原神.
@@ -252,7 +252,7 @@ python webui.py
 
 4. 对低音质参考音频 (尤其是来源于网络的高频严重缺失、听着很闷的音频) 合成出来音质更好
 
-   详见[wiki](<https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90v2%E2%80%90features-(%E6%96%B0%E7%89%B9%E6%80%A7)>)
+    详见[wiki](<https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90v2%E2%80%90features-(%E6%96%B0%E7%89%B9%E6%80%A7)>)
 
 从 v1 环境迁移至 v2
 
@@ -262,7 +262,7 @@ python webui.py
 
 3. 需要从[huggingface](https://huggingface.co/lj1995/GPT-SoVITS/tree/main/gsv-v2final-pretrained) 下载预训练模型文件放到 GPT_SoVITS\pretrained_models\gsv-v2final-pretrained 下
 
-   中文额外需要下载[G2PWModel.zip(HF)](https://huggingface.co/XXXXRT/GPT-SoVITS-Pretrained/resolve/main/G2PWModel.zip)| [G2PWModel.zip(ModelScope)](https://www.modelscope.cn/models/XXXXRT/GPT-SoVITS-Pretrained/resolve/master/G2PWModel.zip) (下载 G2PW 模型,解压并重命名为`G2PWModel`,将其放到`GPT_SoVITS/text`目录下)
+    中文额外需要下载[G2PWModel.zip(HF)](https://huggingface.co/XXXXRT/GPT-SoVITS-Pretrained/resolve/main/G2PWModel.zip)| [G2PWModel.zip(ModelScope)](https://www.modelscope.cn/models/XXXXRT/GPT-SoVITS-Pretrained/resolve/master/G2PWModel.zip) (下载 G2PW 模型,解压并重命名为`G2PWModel`,将其放到`GPT_SoVITS/text`目录下)
 
 ## V3 更新说明
 
@@ -272,7 +272,7 @@ python webui.py
 
 2. GPT 合成更稳定, 重复漏字更少, 也更容易跑出丰富情感
 
-   详见[wiki](<https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90v2%E2%80%90features-(%E6%96%B0%E7%89%B9%E6%80%A7)>)
+    详见[wiki](<https://github.com/RVC-Boss/GPT-SoVITS/wiki/GPT%E2%80%90SoVITS%E2%80%90v2%E2%80%90features-(%E6%96%B0%E7%89%B9%E6%80%A7)>)
 
 从 v2 环境迁移至 v3
 
@@ -282,29 +282,29 @@ python webui.py
 
 3. 从[huggingface](https://huggingface.co/lj1995/GPT-SoVITS/tree/main)下载这些 v3 新增预训练模型 (s1v3.ckpt, s2Gv3.pth and models--nvidia--bigvgan_v2_24khz_100band_256x folder)将他们放到`GPT_SoVITS\pretrained_models`目录下
 
-   如果想用音频超分功能缓解 v3 模型生成 24k 音频觉得闷的问题, 需要下载额外的模型参数, 参考[how to download](../../tools/AP_BWE_main/24kto48k/readme.txt)
+    如果想用音频超分功能缓解 v3 模型生成 24k 音频觉得闷的问题, 需要下载额外的模型参数, 参考[how to download](../../tools/AP_BWE_main/24kto48k/readme.txt)
 
 ## 待办事项清单
 
-- [x] **高优先级: **
+-   [x] **高优先级: **
 
-  - [x] 日语和英语的本地化.
-  - [x] 用户指南.
-  - [x] 日语和英语数据集微调训练.
+    -   [x] 日语和英语的本地化.
+    -   [x] 用户指南.
+    -   [x] 日语和英语数据集微调训练.
 
-- [ ] **功能:**
-  - [x] 零样本声音转换 (5 秒) / 少样本声音转换 (1 分钟).
-  - [x] TTS 语速控制.
-  - [ ] ~~增强的 TTS 情感控制.~~
-  - [ ] 尝试将 SoVITS 令牌输入更改为词汇的概率分布.
-  - [x] 改进英语和日语文本前端.
-  - [ ] 开发体积小和更大的 TTS 模型.
-  - [x] Colab 脚本.
-  - [x] 扩展训练数据集 (从 2k 小时到 10k 小时).
-  - [x] 更好的 sovits 基础模型 (增强的音频质量).
-  - [ ] 模型混合.
+-   [ ] **功能:**
+    -   [x] 零样本声音转换 (5 秒) / 少样本声音转换 (1 分钟).
+    -   [x] TTS 语速控制.
+    -   [ ] ~~增强的 TTS 情感控制.~~
+    -   [ ] 尝试将 SoVITS 令牌输入更改为词汇的概率分布.
+    -   [x] 改进英语和日语文本前端.
+    -   [ ] 开发体积小和更大的 TTS 模型.
+    -   [x] Colab 脚本.
+    -   [x] 扩展训练数据集 (从 2k 小时到 10k 小时).
+    -   [x] 更好的 sovits 基础模型 (增强的音频质量).
+    -   [ ] 模型混合.
 
-##  (附加) 命令行运行方式
+## (附加) 命令行运行方式
 
 使用命令行打开 UVR5 的 WebUI
 
@@ -337,7 +337,7 @@ python tools/asr/funasr_asr.py -i <input> -o <output>
 
 通过 Faster_Whisper 进行 ASR 处理 (除中文之外的 ASR 标记)
 
- (没有进度条, GPU 性能可能会导致时间延迟)
+(没有进度条, GPU 性能可能会导致时间延迟)
 
 ```
 python ./tools/asr/fasterwhisper_asr.py -i <input> -o <output> -l <language> -p <precision>
@@ -347,44 +347,44 @@ python ./tools/asr/fasterwhisper_asr.py -i <input> -o <output> -l <language> -p 
 
 ## 致谢
 
-特别感谢以下项目和贡献者: 
+特别感谢以下项目和贡献者:
 
 ### 理论研究
 
-- [ar-vits](https://github.com/innnky/ar-vits)
-- [SoundStorm](https://github.com/yangdongchao/SoundStorm/tree/master/soundstorm/s1/AR)
-- [vits](https://github.com/jaywalnut310/vits)
-- [TransferTTS](https://github.com/hcy71o/TransferTTS/blob/master/models.py#L556)
-- [contentvec](https://github.com/auspicious3000/contentvec/)
-- [hifi-gan](https://github.com/jik876/hifi-gan)
-- [fish-speech](https://github.com/fishaudio/fish-speech/blob/main/tools/llama/generate.py#L41)
-- [f5-TTS](https://github.com/SWivid/F5-TTS/blob/main/src/f5_tts/model/backbones/dit.py)
-- [shortcut flow matching](https://github.com/kvfrans/shortcut-models/blob/main/targets_shortcut.py)
+-   [ar-vits](https://github.com/innnky/ar-vits)
+-   [SoundStorm](https://github.com/yangdongchao/SoundStorm/tree/master/soundstorm/s1/AR)
+-   [vits](https://github.com/jaywalnut310/vits)
+-   [TransferTTS](https://github.com/hcy71o/TransferTTS/blob/master/models.py#L556)
+-   [contentvec](https://github.com/auspicious3000/contentvec/)
+-   [hifi-gan](https://github.com/jik876/hifi-gan)
+-   [fish-speech](https://github.com/fishaudio/fish-speech/blob/main/tools/llama/generate.py#L41)
+-   [f5-TTS](https://github.com/SWivid/F5-TTS/blob/main/src/f5_tts/model/backbones/dit.py)
+-   [shortcut flow matching](https://github.com/kvfrans/shortcut-models/blob/main/targets_shortcut.py)
 
 ### 预训练模型
 
-- [Chinese Speech Pretrain](https://github.com/TencentGameMate/chinese_speech_pretrain)
-- [Chinese-Roberta-WWM-Ext-Large](https://huggingface.co/hfl/chinese-roberta-wwm-ext-large)
-- [BigVGAN](https://github.com/NVIDIA/BigVGAN)
+-   [Chinese Speech Pretrain](https://github.com/TencentGameMate/chinese_speech_pretrain)
+-   [Chinese-Roberta-WWM-Ext-Large](https://huggingface.co/hfl/chinese-roberta-wwm-ext-large)
+-   [BigVGAN](https://github.com/NVIDIA/BigVGAN)
 
 ### 推理用文本前端
 
-- [paddlespeech zh_normalization](https://github.com/PaddlePaddle/PaddleSpeech/tree/develop/paddlespeech/t2s/frontend/zh_normalization)
-- [split-lang](https://github.com/DoodleBears/split-lang)
-- [g2pW](https://github.com/GitYCC/g2pW)
-- [pypinyin-g2pW](https://github.com/mozillazg/pypinyin-g2pW)
-- [paddlespeech g2pw](https://github.com/PaddlePaddle/PaddleSpeech/tree/develop/paddlespeech/t2s/frontend/g2pw)
+-   [paddlespeech zh_normalization](https://github.com/PaddlePaddle/PaddleSpeech/tree/develop/paddlespeech/t2s/frontend/zh_normalization)
+-   [split-lang](https://github.com/DoodleBears/split-lang)
+-   [g2pW](https://github.com/GitYCC/g2pW)
+-   [pypinyin-g2pW](https://github.com/mozillazg/pypinyin-g2pW)
+-   [paddlespeech g2pw](https://github.com/PaddlePaddle/PaddleSpeech/tree/develop/paddlespeech/t2s/frontend/g2pw)
 
 ### WebUI 工具
 
-- [ultimatevocalremovergui](https://github.com/Anjok07/ultimatevocalremovergui)
-- [audio-slicer](https://github.com/openvpi/audio-slicer)
-- [SubFix](https://github.com/cronrpc/SubFix)
-- [FFmpeg](https://github.com/FFmpeg/FFmpeg)
-- [gradio](https://github.com/gradio-app/gradio)
-- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
-- [FunASR](https://github.com/alibaba-damo-academy/FunASR)
-- [AP-BWE](https://github.com/yxlu-0102/AP-BWE)
+-   [ultimatevocalremovergui](https://github.com/Anjok07/ultimatevocalremovergui)
+-   [audio-slicer](https://github.com/openvpi/audio-slicer)
+-   [SubFix](https://github.com/cronrpc/SubFix)
+-   [FFmpeg](https://github.com/FFmpeg/FFmpeg)
+-   [gradio](https://github.com/gradio-app/gradio)
+-   [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+-   [FunASR](https://github.com/alibaba-damo-academy/FunASR)
+-   [AP-BWE](https://github.com/yxlu-0102/AP-BWE)
 
 感谢 @Naozumi520 提供粤语训练集, 并在粤语相关知识方面给予指导.
 

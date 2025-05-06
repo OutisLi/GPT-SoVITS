@@ -145,23 +145,17 @@ def get_dataset_filelist(a):
     list_unseen_validation_files = []
 
     with open(a.input_training_file, "r", encoding="utf-8") as fi:
-        training_files = [
-            os.path.join(a.input_wavs_dir, x.split("|")[0] + ".wav") for x in fi.read().split("\n") if len(x) > 0
-        ]
+        training_files = [os.path.join(a.input_wavs_dir, x.split("|")[0] + ".wav") for x in fi.read().split("\n") if len(x) > 0]
         print(f"first training file: {training_files[0]}")
 
     with open(a.input_validation_file, "r", encoding="utf-8") as fi:
-        validation_files = [
-            os.path.join(a.input_wavs_dir, x.split("|")[0] + ".wav") for x in fi.read().split("\n") if len(x) > 0
-        ]
+        validation_files = [os.path.join(a.input_wavs_dir, x.split("|")[0] + ".wav") for x in fi.read().split("\n") if len(x) > 0]
         print(f"first validation file: {validation_files[0]}")
 
     for i in range(len(a.list_input_unseen_validation_file)):
         with open(a.list_input_unseen_validation_file[i], "r", encoding="utf-8") as fi:
             unseen_validation_files = [
-                os.path.join(a.list_input_unseen_wavs_dir[i], x.split("|")[0] + ".wav")
-                for x in fi.read().split("\n")
-                if len(x) > 0
+                os.path.join(a.list_input_unseen_wavs_dir[i], x.split("|")[0] + ".wav") for x in fi.read().split("\n") if len(x) > 0
             ]
             print(f"first unseen {i}th validation fileset: {unseen_validation_files[0]}")
             list_unseen_validation_files.append(unseen_validation_files)
@@ -299,9 +293,9 @@ class MelDataset(torch.utils.data.Dataset):
             else:
                 # For fine-tuning, assert that the waveform is in the defined sampling_rate
                 # Fine-tuning won't support on-the-fly resampling to be fool-proof (the dataset should have been prepared properly)
-                assert source_sampling_rate == self.sampling_rate, (
-                    f"For fine_tuning, waveform must be in the spcified sampling rate {self.sampling_rate}, got {source_sampling_rate}"
-                )
+                assert (
+                    source_sampling_rate == self.sampling_rate
+                ), f"For fine_tuning, waveform must be in the spcified sampling rate {self.sampling_rate}, got {source_sampling_rate}"
 
                 # Cast ndarray to torch tensor
                 audio = torch.FloatTensor(audio)
@@ -352,9 +346,7 @@ class MelDataset(torch.utils.data.Dataset):
             # Shape sanity checks
             assert (
                 audio.shape[1] == mel.shape[2] * self.hop_size and audio.shape[1] == mel_loss.shape[2] * self.hop_size
-            ), (
-                f"Audio length must be mel frame length * hop_size. Got audio shape {audio.shape} mel shape {mel.shape} mel_loss shape {mel_loss.shape}"
-            )
+            ), f"Audio length must be mel frame length * hop_size. Got audio shape {audio.shape} mel shape {mel.shape} mel_loss shape {mel_loss.shape}"
 
             return (mel.squeeze(), audio.squeeze(0), filename, mel_loss.squeeze())
 

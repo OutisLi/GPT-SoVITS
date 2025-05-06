@@ -813,10 +813,7 @@ def get_tts_wav(
 
         if version != "v3":
             audio = (
-                vq_model.decode(pred_semantic, torch.LongTensor(phones2).to(device).unsqueeze(0), refers, speed=speed)
-                .detach()
-                .cpu()
-                .numpy()[0, 0]
+                vq_model.decode(pred_semantic, torch.LongTensor(phones2).to(device).unsqueeze(0), refers, speed=speed).detach().cpu().numpy()[0, 0]
             )  ###试试重建不带上prompt部分
         else:
             phoneme_ids0 = torch.LongTensor(phones1).to(device).unsqueeze(0)
@@ -855,9 +852,7 @@ def get_tts_wav(
                 idx += chunk_len
                 fea = torch.cat([fea_ref, fea_todo_chunk], 2).transpose(2, 1)
                 # set_seed(123)
-                cfm_res = vq_model.cfm.inference(
-                    fea, torch.LongTensor([fea.size(1)]).to(fea.device), mel2, sample_steps, inference_cfg_rate=0
-                )
+                cfm_res = vq_model.cfm.inference(fea, torch.LongTensor([fea.size(1)]).to(fea.device), mel2, sample_steps, inference_cfg_rate=0)
                 cfm_res = cfm_res[:, :, mel2.shape[2] :]
                 mel2 = cfm_res[:, :, -T_min:]
                 # print("fea", fea)
@@ -916,9 +911,7 @@ def handle_control(command):
 
 def handle_change(path, text, language):
     if is_empty(path, text, language):
-        return JSONResponse(
-            {"code": 400, "message": '缺少任意一项以下参数: "path", "text", "language"'}, status_code=400
-        )
+        return JSONResponse({"code": 400, "message": '缺少任意一项以下参数: "path", "text", "language"'}, status_code=400)
 
     if path != "" or path is not None:
         default_refer.path = path
@@ -950,14 +943,7 @@ def handle(
     sample_steps,
     if_sr,
 ):
-    if (
-        refer_wav_path == ""
-        or refer_wav_path is None
-        or prompt_text == ""
-        or prompt_text is None
-        or prompt_language == ""
-        or prompt_language is None
-    ):
+    if refer_wav_path == "" or refer_wav_path is None or prompt_text == "" or prompt_text is None or prompt_language == "" or prompt_language is None:
         refer_wav_path, prompt_text, prompt_language = (
             default_refer.path,
             default_refer.text,
@@ -1039,12 +1025,8 @@ parser.add_argument("-dl", "--default_refer_language", type=str, default="", hel
 parser.add_argument("-d", "--device", type=str, default=g_config.infer_device, help="cuda / cpu")
 parser.add_argument("-a", "--bind_addr", type=str, default="0.0.0.0", help="default: 0.0.0.0")
 parser.add_argument("-p", "--port", type=int, default=g_config.api_port, help="default: 9880")
-parser.add_argument(
-    "-fp", "--full_precision", action="store_true", default=False, help="覆盖config.is_half为False, 使用全精度"
-)
-parser.add_argument(
-    "-hp", "--half_precision", action="store_true", default=False, help="覆盖config.is_half为True, 使用半精度"
-)
+parser.add_argument("-fp", "--full_precision", action="store_true", default=False, help="覆盖config.is_half为False, 使用全精度")
+parser.add_argument("-hp", "--half_precision", action="store_true", default=False, help="覆盖config.is_half为True, 使用半精度")
 # bool值的用法为 `python ./api.py -fp ...`
 # 此时 full_precision==True, half_precision==False
 parser.add_argument("-sm", "--stream_mode", type=str, default="close", help="流式返回模式, close / normal / keepalive")
@@ -1142,9 +1124,7 @@ app = FastAPI()
 @app.post("/set_model")
 async def set_model(request: Request):
     json_post_raw = await request.json()
-    return change_gpt_sovits_weights(
-        gpt_path=json_post_raw.get("gpt_model_path"), sovits_path=json_post_raw.get("sovits_model_path")
-    )
+    return change_gpt_sovits_weights(gpt_path=json_post_raw.get("gpt_model_path"), sovits_path=json_post_raw.get("sovits_model_path"))
 
 
 @app.get("/set_model")
@@ -1169,9 +1149,7 @@ async def control(command: str = None):
 @app.post("/change_refer")
 async def change_refer(request: Request):
     json_post_raw = await request.json()
-    return handle_change(
-        json_post_raw.get("refer_wav_path"), json_post_raw.get("prompt_text"), json_post_raw.get("prompt_language")
-    )
+    return handle_change(json_post_raw.get("refer_wav_path"), json_post_raw.get("prompt_text"), json_post_raw.get("prompt_language"))
 
 
 @app.get("/change_refer")

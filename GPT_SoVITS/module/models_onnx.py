@@ -181,9 +181,7 @@ class TextEncoder(nn.Module):
             p_dropout,
         )
 
-        self.encoder_text = attentions.Encoder(
-            hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout
-        )
+        self.encoder_text = attentions.Encoder(hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout)
 
         if self.version == "v1":
             symbols = symbols_v1.symbols
@@ -314,9 +312,7 @@ class PosteriorEncoder(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(
-        self, in_channels, out_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=0
-    ):
+    def __init__(self, in_channels, out_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=0):
         super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -653,11 +649,7 @@ class Quantizer_module(torch.nn.Module):
         self.embedding.weight.data.uniform_(-1.0 / n_e, 1.0 / n_e)
 
     def forward(self, x):
-        d = (
-            torch.sum(x**2, 1, keepdim=True)
-            + torch.sum(self.embedding.weight**2, 1)
-            - 2 * torch.matmul(x, self.embedding.weight.T)
-        )
+        d = torch.sum(x**2, 1, keepdim=True) + torch.sum(self.embedding.weight**2, 1) - 2 * torch.matmul(x, self.embedding.weight.T)
         min_indicies = torch.argmin(d, 1)
         z_q = self.embedding(min_indicies)
         return z_q, min_indicies
@@ -667,9 +659,7 @@ class Quantizer(torch.nn.Module):
     def __init__(self, embed_dim=512, n_code_groups=4, n_codes=160):
         super(Quantizer, self).__init__()
         assert embed_dim % n_code_groups == 0
-        self.quantizer_modules = nn.ModuleList(
-            [Quantizer_module(n_codes, embed_dim // n_code_groups) for _ in range(n_code_groups)]
-        )
+        self.quantizer_modules = nn.ModuleList([Quantizer_module(n_codes, embed_dim // n_code_groups) for _ in range(n_code_groups)])
         self.n_code_groups = n_code_groups
         self.embed_dim = embed_dim
 
@@ -1011,9 +1001,7 @@ class SynthesizerTrnV3(nn.Module):
 
         self.model_dim = 512
         self.use_sdp = use_sdp
-        self.enc_p = TextEncoder(
-            inter_channels, hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout
-        )
+        self.enc_p = TextEncoder(inter_channels, hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout)
         # self.ref_enc = modules.MelStyleEncoder(spec_channels, style_vector_dim=gin_channels)###Rollback
         self.ref_enc = modules.MelStyleEncoder(704, style_vector_dim=gin_channels)  ###Rollback
         # self.dec = Generator(inter_channels, resblock, resblock_kernel_sizes, resblock_dilation_sizes, upsample_rates,

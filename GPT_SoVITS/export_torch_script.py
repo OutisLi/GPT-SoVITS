@@ -482,9 +482,9 @@ class T2SModel(nn.Module):
         samples = sample(logits, y, top_k=top_k, top_p=1, repetition_penalty=1.35, temperature=1.0)[0]
         y = torch.concat([y, samples], dim=1)
         y_emb = self.ar_audio_embedding(y[:, -1:])
-        xy_pos = y_emb * self.ar_audio_position.x_scale + self.ar_audio_position.alpha * self.ar_audio_position.pe[
-            :, y_len + idx
-        ].to(dtype=y_emb.dtype, device=y_emb.device)
+        xy_pos = y_emb * self.ar_audio_position.x_scale + self.ar_audio_position.alpha * self.ar_audio_position.pe[:, y_len + idx].to(
+            dtype=y_emb.dtype, device=y_emb.device
+        )
 
         stop = False
         # for idx in range(1, 50):
@@ -511,9 +511,9 @@ class T2SModel(nn.Module):
                 break
 
             y_emb = self.ar_audio_embedding(y[:, -1:])
-            xy_pos = y_emb * self.ar_audio_position.x_scale + self.ar_audio_position.alpha * self.ar_audio_position.pe[
-                :, y_len + idx
-            ].to(dtype=y_emb.dtype, device=y_emb.device)
+            xy_pos = y_emb * self.ar_audio_position.x_scale + self.ar_audio_position.alpha * self.ar_audio_position.pe[:, y_len + idx].to(
+                dtype=y_emb.dtype, device=y_emb.device
+            )
 
         y[0, -1] = 0
 
@@ -541,9 +541,7 @@ class MyBertModel(torch.nn.Module):
         super(MyBertModel, self).__init__()
         self.bert = bert_model
 
-    def forward(
-        self, input_ids: torch.Tensor, attention_mask: torch.Tensor, token_type_ids: torch.Tensor, word2ph: IntTensor
-    ):
+    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor, token_type_ids: torch.Tensor, word2ph: IntTensor):
         outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
         # res = torch.cat(outputs["hidden_states"][-3:-2], -1)[0][1:-1]
         res = torch.cat(outputs[1][-3:-2], -1)[0][1:-1]
@@ -631,9 +629,7 @@ def export(gpt_path, vits_path, ref_audio_path, ref_text, output_path, export_be
     ref_seq_id, ref_bert_T, ref_norm_text = get_phones_and_bert(ref_text, "all_zh", "v2")
     ref_seq = torch.LongTensor([ref_seq_id]).to(device)
     ref_bert = ref_bert_T.T.to(ref_seq.device)
-    text_seq_id, text_bert_T, norm_text = get_phones_and_bert(
-        "这是一条测试语音，说什么无所谓，只是给它一个例子", "all_zh", "v2"
-    )
+    text_seq_id, text_bert_T, norm_text = get_phones_and_bert("这是一条测试语音，说什么无所谓，只是给它一个例子", "all_zh", "v2")
     text_seq = torch.LongTensor([text_seq_id]).to(device)
     text_bert = text_bert_T.T.to(text_seq.device)
 
@@ -670,9 +666,7 @@ def export(gpt_path, vits_path, ref_audio_path, ref_text, output_path, export_be
     top_k = torch.LongTensor([5]).to(device)
 
     with torch.no_grad():
-        gpt_sovits_export = torch.jit.trace(
-            gpt_sovits, example_inputs=(ssl_content, ref_audio_sr, ref_seq, text_seq, ref_bert, text_bert, top_k)
-        )
+        gpt_sovits_export = torch.jit.trace(gpt_sovits, example_inputs=(ssl_content, ref_audio_sr, ref_seq, text_seq, ref_bert, text_bert, top_k))
 
         gpt_sovits_path = os.path.join(output_path, "gpt_sovits_model.pt")
         gpt_sovits_export.save(gpt_sovits_path)

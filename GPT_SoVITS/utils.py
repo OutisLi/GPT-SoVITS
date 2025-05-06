@@ -252,9 +252,7 @@ def clean_checkpoints(path_to_models="logs/44k/", n_ckpts_to_keep=2, sort_by_tim
         [f for f in ckpts_files if f.startswith(_x) and not f.endswith("_0.pth")],
         key=sort_key,
     )
-    to_del = [
-        os.path.join(path_to_models, fn) for fn in (x_sorted("G")[:-n_ckpts_to_keep] + x_sorted("D")[:-n_ckpts_to_keep])
-    ]
+    to_del = [os.path.join(path_to_models, fn) for fn in (x_sorted("G")[:-n_ckpts_to_keep] + x_sorted("D")[:-n_ckpts_to_keep])]
     del_info = lambda fn: logger.info(f".. Free up space by deleting ckpt {fn}")
     del_routine = lambda x: [os.remove(x), del_info(x)]
     rs = [del_routine(fn) for fn in to_del]

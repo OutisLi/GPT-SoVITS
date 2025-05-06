@@ -110,13 +110,9 @@ class MultiPeriodDiscriminator(torch.nn.Module):
         super().__init__()
         self.mpd_reshapes = h.mpd_reshapes
         print(f"mpd_reshapes: {self.mpd_reshapes}")
-        self.discriminators = nn.ModuleList(
-            [DiscriminatorP(h, rs, use_spectral_norm=h.use_spectral_norm) for rs in self.mpd_reshapes]
-        )
+        self.discriminators = nn.ModuleList([DiscriminatorP(h, rs, use_spectral_norm=h.use_spectral_norm) for rs in self.mpd_reshapes])
 
-    def forward(
-        self, y: torch.Tensor, y_hat: torch.Tensor
-    ) -> Tuple[
+    def forward(self, y: torch.Tensor, y_hat: torch.Tensor) -> Tuple[
         List[torch.Tensor],
         List[torch.Tensor],
         List[List[torch.Tensor]],
@@ -237,14 +233,10 @@ class MultiResolutionDiscriminator(nn.Module):
     def __init__(self, cfg, debug=False):
         super().__init__()
         self.resolutions = cfg.resolutions
-        assert len(self.resolutions) == 3, (
-            f"MRD requires list of list with len=3, each element having a list with len=3. Got {self.resolutions}"
-        )
+        assert len(self.resolutions) == 3, f"MRD requires list of list with len=3, each element having a list with len=3. Got {self.resolutions}"
         self.discriminators = nn.ModuleList([DiscriminatorR(cfg, resolution) for resolution in self.resolutions])
 
-    def forward(
-        self, y: torch.Tensor, y_hat: torch.Tensor
-    ) -> Tuple[
+    def forward(self, y: torch.Tensor, y_hat: torch.Tensor) -> Tuple[
         List[torch.Tensor],
         List[torch.Tensor],
         List[List[torch.Tensor]],
@@ -357,9 +349,7 @@ class MultiBandDiscriminator(nn.Module):
         self.fft_sizes = h.get("mbd_fft_sizes", [2048, 1024, 512])
         self.discriminators = nn.ModuleList([DiscriminatorB(window_length=w) for w in self.fft_sizes])
 
-    def forward(
-        self, y: torch.Tensor, y_hat: torch.Tensor
-    ) -> Tuple[
+    def forward(self, y: torch.Tensor, y_hat: torch.Tensor) -> Tuple[
         List[torch.Tensor],
         List[torch.Tensor],
         List[List[torch.Tensor]],
@@ -481,9 +471,7 @@ class DiscriminatorCQT(nn.Module):
 
         self.cqtd_normalize_volume = self.cfg.get("cqtd_normalize_volume", False)
         if self.cqtd_normalize_volume:
-            print(
-                "[INFO] cqtd_normalize_volume set to True. Will apply DC offset removal & peak volume normalization in CQTD!"
-            )
+            print("[INFO] cqtd_normalize_volume set to True. Will apply DC offset removal & peak volume normalization in CQTD!")
 
     def get_2d_padding(
         self,
@@ -568,9 +556,7 @@ class MultiScaleSubbandCQTDiscriminator(nn.Module):
             ]
         )
 
-    def forward(
-        self, y: torch.Tensor, y_hat: torch.Tensor
-    ) -> Tuple[
+    def forward(self, y: torch.Tensor, y_hat: torch.Tensor) -> Tuple[
         List[torch.Tensor],
         List[torch.Tensor],
         List[List[torch.Tensor]],
@@ -602,9 +588,7 @@ class CombinedDiscriminator(nn.Module):
         super().__init__()
         self.discrimiantor = nn.ModuleList(list_discriminator)
 
-    def forward(
-        self, y: torch.Tensor, y_hat: torch.Tensor
-    ) -> Tuple[
+    def forward(self, y: torch.Tensor, y_hat: torch.Tensor) -> Tuple[
         List[torch.Tensor],
         List[torch.Tensor],
         List[List[torch.Tensor]],

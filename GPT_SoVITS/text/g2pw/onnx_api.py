@@ -109,9 +109,7 @@ class G2PWOnnxConverter:
 
         polyphonic_chars_path = os.path.join(uncompress_path, "POLYPHONIC_CHARS.txt")
         monophonic_chars_path = os.path.join(uncompress_path, "MONOPHONIC_CHARS.txt")
-        self.polyphonic_chars = [
-            line.split("\t") for line in open(polyphonic_chars_path, encoding="utf-8").read().strip().split("\n")
-        ]
+        self.polyphonic_chars = [line.split("\t") for line in open(polyphonic_chars_path, encoding="utf-8").read().strip().split("\n")]
         self.non_polyphonic = {
             "一",
             "不",
@@ -134,9 +132,7 @@ class G2PWOnnxConverter:
             "噢",
         }
         self.non_monophonic = {"似", "攢"}
-        self.monophonic_chars = [
-            line.split("\t") for line in open(monophonic_chars_path, encoding="utf-8").read().strip().split("\n")
-        ]
+        self.monophonic_chars = [line.split("\t") for line in open(monophonic_chars_path, encoding="utf-8").read().strip().split("\n")]
         self.labels, self.char2phonemes = (
             get_char_phoneme_labels(polyphonic_chars=self.polyphonic_chars)
             if self.config.use_char_phoneme

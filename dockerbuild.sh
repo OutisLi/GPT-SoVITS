@@ -12,7 +12,6 @@ docker tag breakstring/gpt-sovits:latest breakstring/gpt-sovits:dev-$DATE
 # 为同一个镜像添加带当前代码库Commit哈希值的标签
 docker tag breakstring/gpt-sovits:latest breakstring/gpt-sovits:dev-$COMMIT_HASH
 
-
 # 构建 elite 版本的镜像(无模型下载步骤，需手工将模型下载安装进容器)
 docker build --build-arg IMAGE_TYPE=elite -t breakstring/gpt-sovits:latest-elite .
 # 为同一个镜像添加带日期的标签

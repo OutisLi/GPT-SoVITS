@@ -258,9 +258,7 @@ def normalize(text):
     text = re.sub(_ordinal_re, _expand_ordinal, text)
     text = re.sub(_number_re, _expand_number, text)
 
-    text = "".join(
-        char for char in unicodedata.normalize("NFD", text) if unicodedata.category(char) != "Mn"
-    )  # Strip accents
+    text = "".join(char for char in unicodedata.normalize("NFD", text) if unicodedata.category(char) != "Mn")  # Strip accents
 
     text = re.sub("%", " percent", text)
     text = re.sub("[^ A-Za-z'.,?!\-]", "", text)

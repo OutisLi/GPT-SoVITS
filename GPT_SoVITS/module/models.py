@@ -186,9 +186,7 @@ class TextEncoder(nn.Module):
             p_dropout,
         )
 
-        self.encoder_text = attentions.Encoder(
-            hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout
-        )
+        self.encoder_text = attentions.Encoder(hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout)
 
         if self.version == "v1":
             symbols = symbols_v1.symbols
@@ -338,9 +336,7 @@ class PosteriorEncoder(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(
-        self, in_channels, out_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=0
-    ):
+    def __init__(self, in_channels, out_channels, hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=0):
         super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -414,7 +410,8 @@ class Generator(torch.nn.Module):
         upsample_rates,
         upsample_initial_channel,
         upsample_kernel_sizes,
-        gin_channels=0,is_bias=False,
+        gin_channels=0,
+        is_bias=False,
     ):
         super(Generator, self).__init__()
         self.num_kernels = len(resblock_kernel_sizes)
@@ -677,11 +674,7 @@ class Quantizer_module(torch.nn.Module):
         self.embedding.weight.data.uniform_(-1.0 / n_e, 1.0 / n_e)
 
     def forward(self, x):
-        d = (
-            torch.sum(x**2, 1, keepdim=True)
-            + torch.sum(self.embedding.weight**2, 1)
-            - 2 * torch.matmul(x, self.embedding.weight.T)
-        )
+        d = torch.sum(x**2, 1, keepdim=True) + torch.sum(self.embedding.weight**2, 1) - 2 * torch.matmul(x, self.embedding.weight.T)
         min_indicies = torch.argmin(d, 1)
         z_q = self.embedding(min_indicies)
         return z_q, min_indicies
@@ -691,9 +684,7 @@ class Quantizer(torch.nn.Module):
     def __init__(self, embed_dim=512, n_code_groups=4, n_codes=160):
         super(Quantizer, self).__init__()
         assert embed_dim % n_code_groups == 0
-        self.quantizer_modules = nn.ModuleList(
-            [Quantizer_module(n_codes, embed_dim // n_code_groups) for _ in range(n_code_groups)]
-        )
+        self.quantizer_modules = nn.ModuleList([Quantizer_module(n_codes, embed_dim // n_code_groups) for _ in range(n_code_groups)])
         self.n_code_groups = n_code_groups
         self.embed_dim = embed_dim
 
@@ -1122,9 +1113,7 @@ class SynthesizerTrnV3(nn.Module):
 
         self.model_dim = 512
         self.use_sdp = use_sdp
-        self.enc_p = TextEncoder(
-            inter_channels, hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout
-        )
+        self.enc_p = TextEncoder(inter_channels, hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout)
         # self.ref_enc = modules.MelStyleEncoder(spec_channels, style_vector_dim=gin_channels)###Rollback
         self.ref_enc = modules.MelStyleEncoder(704, style_vector_dim=gin_channels)  ###Rollback
         # self.dec = Generator(inter_channels, resblock, resblock_kernel_sizes, resblock_dilation_sizes, upsample_rates,
@@ -1156,9 +1145,7 @@ class SynthesizerTrnV3(nn.Module):
             set_no_grad(self.quantizer)
             set_no_grad(self.enc_p)
 
-    def forward(
-        self, ssl, y, mel, ssl_lengths, y_lengths, text, text_lengths, mel_lengths, use_grad_ckpt
-    ):  # ssl_lengths no need now
+    def forward(self, ssl, y, mel, ssl_lengths, y_lengths, text, text_lengths, mel_lengths, use_grad_ckpt):  # ssl_lengths no need now
         with autocast(enabled=False):
             y_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, y.size(2)), 1).to(y.dtype)
             ge = self.ref_enc(y[:, :704] * y_mask, y_mask)
@@ -1173,10 +1160,8 @@ class SynthesizerTrnV3(nn.Module):
                 quantized = F.interpolate(quantized, scale_factor=2, mode="nearest")  ##BCT
                 x, m_p, logs_p, y_mask = self.enc_p(quantized, y_lengths, text, text_lengths, ge)
         fea = self.bridge(x)
-        fea = F.interpolate(fea, scale_factor=(1.875 if self.version=="v3"else 2), mode="nearest")  ##BCT
-        fea, y_mask_ = self.wns1(
-            fea, mel_lengths, ge
-        )  ##If the 1-minute fine-tuning works fine, no need to manually adjust the learning rate.
+        fea = F.interpolate(fea, scale_factor=(1.875 if self.version == "v3" else 2), mode="nearest")  ##BCT
+        fea, y_mask_ = self.wns1(fea, mel_lengths, ge)  ##If the 1-minute fine-tuning works fine, no need to manually adjust the learning rate.
         B = ssl.shape[0]
         prompt_len_max = mel_lengths * 2 / 3
         prompt_len = (torch.rand([B], device=fea.device) * prompt_len_max).floor().to(dtype=torch.long)
@@ -1196,9 +1181,9 @@ class SynthesizerTrnV3(nn.Module):
             ge = self.ref_enc(refer[:, :704] * refer_mask, refer_mask)
         y_lengths = torch.LongTensor([int(codes.size(2) * 2)]).to(codes.device)
         if speed == 1:
-            sizee = int(codes.size(2) * (3.875 if self.version=="v3"else 4))
+            sizee = int(codes.size(2) * (3.875 if self.version == "v3" else 4))
         else:
-            sizee = int(codes.size(2) * (3.875 if self.version=="v3"else 4) / speed) + 1
+            sizee = int(codes.size(2) * (3.875 if self.version == "v3" else 4) / speed) + 1
         y_lengths1 = torch.LongTensor([sizee]).to(codes.device)
         text_lengths = torch.LongTensor([text.size(-1)]).to(text.device)
 
@@ -1207,7 +1192,7 @@ class SynthesizerTrnV3(nn.Module):
             quantized = F.interpolate(quantized, scale_factor=2, mode="nearest")  ##BCT
         x, m_p, logs_p, y_mask = self.enc_p(quantized, y_lengths, text, text_lengths, ge, speed)
         fea = self.bridge(x)
-        fea = F.interpolate(fea, scale_factor=(1.875 if self.version=="v3"else 2), mode="nearest")  ##BCT
+        fea = F.interpolate(fea, scale_factor=(1.875 if self.version == "v3" else 2), mode="nearest")  ##BCT
         ####more wn paramter to learn mel
         fea, y_mask_ = self.wns1(fea, y_lengths1, ge)
         return fea, ge
@@ -1268,9 +1253,7 @@ class SynthesizerTrnV3b(nn.Module):
 
         self.model_dim = 512
         self.use_sdp = use_sdp
-        self.enc_p = TextEncoder(
-            inter_channels, hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout
-        )
+        self.enc_p = TextEncoder(inter_channels, hidden_channels, filter_channels, n_heads, n_layers, kernel_size, p_dropout)
         # self.ref_enc = modules.MelStyleEncoder(spec_channels, style_vector_dim=gin_channels)###Rollback
         self.ref_enc = modules.MelStyleEncoder(704, style_vector_dim=gin_channels)  ###Rollback
         self.dec = Generator(
@@ -1283,9 +1266,7 @@ class SynthesizerTrnV3b(nn.Module):
             upsample_kernel_sizes,
             gin_channels=gin_channels,
         )
-        self.enc_q = PosteriorEncoder(
-            spec_channels, inter_channels, hidden_channels, 5, 1, 16, gin_channels=gin_channels
-        )
+        self.enc_q = PosteriorEncoder(spec_channels, inter_channels, hidden_channels, 5, 1, 16, gin_channels=gin_channels)
         self.flow = ResidualCouplingBlock(inter_channels, hidden_channels, 5, 1, 4, gin_channels=gin_channels)
 
         ssl_dim = 768

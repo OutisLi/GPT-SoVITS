@@ -102,22 +102,14 @@ class AMPBlock1(torch.nn.Module):
         # Activation functions
         if activation == "snake":
             self.activations = nn.ModuleList(
-                [
-                    Activation1d(activation=activations.Snake(channels, alpha_logscale=h.snake_logscale))
-                    for _ in range(self.num_layers)
-                ]
+                [Activation1d(activation=activations.Snake(channels, alpha_logscale=h.snake_logscale)) for _ in range(self.num_layers)]
             )
         elif activation == "snakebeta":
             self.activations = nn.ModuleList(
-                [
-                    Activation1d(activation=activations.SnakeBeta(channels, alpha_logscale=h.snake_logscale))
-                    for _ in range(self.num_layers)
-                ]
+                [Activation1d(activation=activations.SnakeBeta(channels, alpha_logscale=h.snake_logscale)) for _ in range(self.num_layers)]
             )
         else:
-            raise NotImplementedError(
-                "activation incorrectly specified. check the config file and look for 'activation'."
-            )
+            raise NotImplementedError("activation incorrectly specified. check the config file and look for 'activation'.")
 
     def forward(self, x):
         acts1, acts2 = self.activations[::2], self.activations[1::2]
@@ -194,22 +186,14 @@ class AMPBlock2(torch.nn.Module):
         # Activation functions
         if activation == "snake":
             self.activations = nn.ModuleList(
-                [
-                    Activation1d(activation=activations.Snake(channels, alpha_logscale=h.snake_logscale))
-                    for _ in range(self.num_layers)
-                ]
+                [Activation1d(activation=activations.Snake(channels, alpha_logscale=h.snake_logscale)) for _ in range(self.num_layers)]
             )
         elif activation == "snakebeta":
             self.activations = nn.ModuleList(
-                [
-                    Activation1d(activation=activations.SnakeBeta(channels, alpha_logscale=h.snake_logscale))
-                    for _ in range(self.num_layers)
-                ]
+                [Activation1d(activation=activations.SnakeBeta(channels, alpha_logscale=h.snake_logscale)) for _ in range(self.num_layers)]
             )
         else:
-            raise NotImplementedError(
-                "activation incorrectly specified. check the config file and look for 'activation'."
-            )
+            raise NotImplementedError("activation incorrectly specified. check the config file and look for 'activation'.")
 
     def forward(self, x):
         for c, a in zip(self.convs, self.activations):
@@ -308,9 +292,7 @@ class BigVGAN(
             else (activations.SnakeBeta(ch, alpha_logscale=h.snake_logscale) if h.activation == "snakebeta" else None)
         )
         if activation_post is None:
-            raise NotImplementedError(
-                "activation incorrectly specified. check the config file and look for 'activation'."
-            )
+            raise NotImplementedError("activation incorrectly specified. check the config file and look for 'activation'.")
 
         self.activation_post = Activation1d(activation=activation_post)
 
@@ -452,9 +434,7 @@ class BigVGAN(
         try:
             model.load_state_dict(checkpoint_dict["generator"])
         except RuntimeError:
-            print(
-                "[INFO] the pretrained checkpoint does not contain weight norm. Loading the checkpoint after removing weight norm!"
-            )
+            print("[INFO] the pretrained checkpoint does not contain weight norm. Loading the checkpoint after removing weight norm!")
             model.remove_weight_norm()
             model.load_state_dict(checkpoint_dict["generator"])
 

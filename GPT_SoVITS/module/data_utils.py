@@ -123,9 +123,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         audio = torch.FloatTensor(audio_array)  # /32768
         audio_norm = audio
         audio_norm = audio_norm.unsqueeze(0)
-        spec = spectrogram_torch(
-            audio_norm, self.filter_length, self.sampling_rate, self.hop_length, self.win_length, center=False
-        )
+        spec = spectrogram_torch(audio_norm, self.filter_length, self.sampling_rate, self.hop_length, self.win_length, center=False)
         spec = torch.squeeze(spec, 0)
         return spec, audio_norm
 
@@ -355,16 +353,12 @@ class TextAudioSpeakerLoaderV3(torch.utils.data.Dataset):
         audio = torch.FloatTensor(audio_array)  # /32768
         audio_norm = audio
         audio_norm = audio_norm.unsqueeze(0)
-        audio_array24 = load_audio(
-            filename, 24000
-        )  # load_audio的方法是已经归一化到-1~1之间的，不用再/32768######这里可以用GPU重采样加速
+        audio_array24 = load_audio(filename, 24000)  # load_audio的方法是已经归一化到-1~1之间的，不用再/32768######这里可以用GPU重采样加速
         audio24 = torch.FloatTensor(audio_array24)  # /32768
         audio_norm24 = audio24
         audio_norm24 = audio_norm24.unsqueeze(0)
 
-        spec = spectrogram_torch(
-            audio_norm, self.filter_length, self.sampling_rate, self.hop_length, self.win_length, center=False
-        )
+        spec = spectrogram_torch(audio_norm, self.filter_length, self.sampling_rate, self.hop_length, self.win_length, center=False)
         spec = torch.squeeze(spec, 0)
 
         spec1 = spectrogram_torch(
@@ -375,9 +369,7 @@ class TextAudioSpeakerLoaderV3(torch.utils.data.Dataset):
             self.win_length_mel,
             center=False,
         )
-        mel = spec_to_mel_torch(
-            spec1, self.filter_length_mel, self.n_mel_channels, self.sampling_rate_mel, self.mel_fmin, self.mel_fmax
-        )
+        mel = spec_to_mel_torch(spec1, self.filter_length_mel, self.n_mel_channels, self.sampling_rate_mel, self.mel_fmin, self.mel_fmax)
         mel = torch.squeeze(mel, 0)
         mel = self.norm_spec(mel)
         # print(1111111,spec.shape,mel.shape)
@@ -469,6 +461,7 @@ class TextAudioSpeakerCollateV3:
 
         # return ssl_padded, spec_padded,mel_padded, ssl_lengths, spec_lengths, text_padded, text_lengths, wav_padded, wav_lengths,mel_lengths
         return ssl_padded, spec_padded, mel_padded, ssl_lengths, spec_lengths, text_padded, text_lengths, mel_lengths
+
 
 class TextAudioSpeakerLoaderV4(torch.utils.data.Dataset):
     """
@@ -592,11 +585,9 @@ class TextAudioSpeakerLoaderV4(torch.utils.data.Dataset):
         audio = torch.FloatTensor(audio_array)  # /32768
         audio_norm = audio
         audio_norm = audio_norm.unsqueeze(0)
-        spec = spectrogram_torch(
-            audio_norm, self.filter_length, self.sampling_rate, self.hop_length, self.win_length, center=False
-        )
+        spec = spectrogram_torch(audio_norm, self.filter_length, self.sampling_rate, self.hop_length, self.win_length, center=False)
         spec = torch.squeeze(spec, 0)
-        spec1 = spectrogram_torch(audio_norm, 1280,32000, 320, 1280,center=False)
+        spec1 = spectrogram_torch(audio_norm, 1280, 32000, 320, 1280, center=False)
         mel = spec_to_mel_torch(spec1, 1280, 100, 32000, 0, None)
         mel = self.norm_spec(torch.squeeze(mel, 0))
         return spec, mel
@@ -643,7 +634,7 @@ class TextAudioSpeakerCollateV4:
         mel_lengths = torch.LongTensor(len(batch))
 
         spec_padded = torch.FloatTensor(len(batch), batch[0][1].size(0), max_spec_len)
-        mel_padded = torch.FloatTensor(len(batch), batch[0][2].size(0), max_spec_len*2)
+        mel_padded = torch.FloatTensor(len(batch), batch[0][2].size(0), max_spec_len * 2)
         ssl_padded = torch.FloatTensor(len(batch), batch[0][0].size(1), max_ssl_len)
         text_padded = torch.LongTensor(len(batch), max_text_len)
         # wav_padded = torch.FloatTensor(len(batch), 1, max_wav_len)
@@ -803,16 +794,12 @@ class TextAudioSpeakerLoaderV3b(torch.utils.data.Dataset):
         audio = torch.FloatTensor(audio_array)  # /32768
         audio_norm = audio
         audio_norm = audio_norm.unsqueeze(0)
-        audio_array24 = load_audio(
-            filename, 24000
-        )  # load_audio的方法是已经归一化到-1~1之间的，不用再/32768######这里可以用GPU重采样加速
+        audio_array24 = load_audio(filename, 24000)  # load_audio的方法是已经归一化到-1~1之间的，不用再/32768######这里可以用GPU重采样加速
         audio24 = torch.FloatTensor(audio_array24)  # /32768
         audio_norm24 = audio24
         audio_norm24 = audio_norm24.unsqueeze(0)
 
-        spec = spectrogram_torch(
-            audio_norm, self.filter_length, self.sampling_rate, self.hop_length, self.win_length, center=False
-        )
+        spec = spectrogram_torch(audio_norm, self.filter_length, self.sampling_rate, self.hop_length, self.win_length, center=False)
         spec = torch.squeeze(spec, 0)
 
         spec1 = spectrogram_torch(
@@ -823,9 +810,7 @@ class TextAudioSpeakerLoaderV3b(torch.utils.data.Dataset):
             self.win_length_mel,
             center=False,
         )
-        mel = spec_to_mel_torch(
-            spec1, self.filter_length_mel, self.n_mel_channels, self.sampling_rate_mel, self.mel_fmin, self.mel_fmax
-        )
+        mel = spec_to_mel_torch(spec1, self.filter_length_mel, self.n_mel_channels, self.sampling_rate_mel, self.mel_fmin, self.mel_fmax)
         mel = torch.squeeze(mel, 0)
         mel = self.norm_spec(mel)
         # print(1111111,spec.shape,mel.shape)
