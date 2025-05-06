@@ -3,7 +3,7 @@ import os
 import soundfile as sf
 
 from tools.i18n.i18n import I18nAuto
-from cli.cli_utils import change_gpt_weights, change_sovits_weights, get_tts_wav
+from GPT_SoVITS.inference_webui import change_gpt_weights, change_sovits_weights, get_tts_wav
 
 
 def synthesize(

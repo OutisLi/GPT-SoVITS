@@ -3,24 +3,25 @@ import argparse
 import soundfile as sf
 
 
-from cli.cli_utils import change_gpt_weights, change_sovits_weights, get_tts_wav
+from cli.cli_utils import load_gpt_weights, load_sovits_weights, get_tts_wav
 
 
-def synthesize(ref_audio_path, ref_text, target_text, output_path):
+def synthesize(ref_audio_path, ref_text, target_text, output_path, speed):
     # Change model weights
-    change_gpt_weights("models/GPT_SoVITS_v4/s1v3.ckpt")
-    change_sovits_weights("models/GPT_SoVITS_v4/s2Gv4.pth")
+    load_gpt_weights("models/GPT_SoVITS_v4/s1v3.ckpt")
+    # load_sovits_weights("models/GPT_SoVITS_v4/s2Gv4.pth")
+    try:
+        next(load_sovits_weights("models/GPT_SoVITS_v4/s2Gv4.pth"))
+    except:
+        pass
 
     # Synthesize audio
-    # 默认中英文混合输入输出，以避免 I18nAuto 的使用
+    # 默认中英文混合输入输出
     synthesis_result = get_tts_wav(
         ref_wav_path=ref_audio_path,
         prompt_text=ref_text,
-        prompt_language="Chinese-English Mixed",
         text=target_text,
-        text_language="Chinese-English Mixed",
-        top_p=1,
-        temperature=1,
+        speed=speed,
     )
 
     result_list = list(synthesis_result)
@@ -40,11 +41,12 @@ def main():
     parser.add_argument("--ref_text", default="希望你以后能够做的比我还好呦。", help="Reference text")
     parser.add_argument("--target_text", default="不对不对，是八号，也就是说还有八加十五天还有二十三天，还有三周多你才能见到我呢, Hi! Today is Monday.", help="Target text")
     parser.add_argument("--output_path", default="output", help="Path to the output directory")
+    parser.add_argument("--speed", type=float, default=1.0, help="Speed of the synthesized audio")
     # fmt: on
 
     args = parser.parse_args()
 
-    synthesize(args.ref_audio, args.ref_text, args.target_text, args.output_path)
+    synthesize(args.ref_audio, args.ref_text, args.target_text, args.output_path, args.speed)
 
 
 if __name__ == "__main__":
