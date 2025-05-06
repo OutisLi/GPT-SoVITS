@@ -3,9 +3,7 @@ import os
 import soundfile as sf
 
 from tools.i18n.i18n import I18nAuto
-from GPT_SoVITS.inference_utils import change_gpt_weights, change_sovits_weights, get_tts_wav
-
-i18n = I18nAuto()
+from cli.cli_utils import change_gpt_weights, change_sovits_weights, get_tts_wav
 
 
 def synthesize(
@@ -27,6 +25,7 @@ def synthesize(
     #     os.system(f"ffmpeg -i {ref_audio_path} -vn -acodec pcm_s16le -ar 16000 -ac 1 {ref_audio_path[:-4]}.wav")
     #     ref_audio_path = ref_audio_path[:-4] + ".wav"
 
+    i18n = I18nAuto()
     # Synthesize audio
     synthesis_result = get_tts_wav(
         ref_wav_path=ref_audio_path,

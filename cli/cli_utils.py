@@ -688,6 +688,7 @@ def audio_sr(audio, sr):
 cache = {}
 
 
+# 默认中英文混合输入输出，以避免 I18nAuto 的使用
 def get_tts_wav(
     ref_wav_path,
     prompt_text,
