@@ -22,7 +22,6 @@ logging.getLogger("torchaudio._extension").setLevel(logging.ERROR)
 logging.getLogger("multipart.multipart").setLevel(logging.ERROR)
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-import json
 import os
 import re
 import sys
@@ -38,13 +37,6 @@ except:
     ...
 version = "v2"
 
-
-if os.path.exists("./weight.json"):
-    pass
-else:
-    with open("./weight.json", "w", encoding="utf-8") as file:
-        json.dump({"GPT": {}, "SoVITS": {}}, file)
-
 cnhubert_base_path = os.environ.get("cnhubert_base_path", "GPT_SoVITS/pretrained_models/chinese-hubert-base")
 bert_path = os.environ.get("bert_path", "GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large")
 infer_ttswebui = os.environ.get("infer_ttswebui", 9872)
@@ -56,7 +48,6 @@ if "_CUDA_VISIBLE_DEVICES" in os.environ:
 is_half = eval(os.environ.get("is_half", "True")) and torch.cuda.is_available()
 # is_half=False
 punctuation = set(["!", "?", "…", ",", ".", "-", " "])
-import gradio as gr
 import librosa
 import numpy as np
 from feature_extractor import cnhubert
@@ -85,13 +76,10 @@ def set_seed(seed):
 from time import time as ttime
 
 from AR.models.t2s_lightning_module import Text2SemanticLightningModule
-from peft import LoraConfig, get_peft_model
 from text import cleaned_text_to_sequence
 from text.cleaner import clean_text
 
 from tools.i18n.i18n import I18nAuto, scan_language_list
-
-# os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'  # 确保直接启动推理UI时也能够设置。
 
 if torch.cuda.is_available():
     device = "cuda"
@@ -103,17 +91,17 @@ language = sys.argv[-1] if sys.argv[-1] in scan_language_list() else language
 i18n = I18nAuto(language=language)
 
 dict_language = {
-    i18n("中文"): "all_zh",  # 全部按中文识别
-    i18n("英文"): "en",  # 全部按英文识别#######不变
-    i18n("日文"): "all_ja",  # 全部按日文识别
-    i18n("粤语"): "all_yue",  # 全部按中文识别
-    i18n("韩文"): "all_ko",  # 全部按韩文识别
-    i18n("中英混合"): "zh",  # 按中英混合识别####不变
-    i18n("日英混合"): "ja",  # 按日英混合识别####不变
-    i18n("粤英混合"): "yue",  # 按粤英混合识别####不变
-    i18n("韩英混合"): "ko",  # 按韩英混合识别####不变
-    i18n("多语种混合"): "auto",  # 多语种启动切分识别语种
-    i18n("多语种混合(粤语)"): "auto_yue",  # 多语种启动切分识别语种
+    i18n("中文"): "all_zh",
+    i18n("英文"): "en",
+    i18n("日文"): "all_ja",
+    i18n("粤语"): "all_yue",
+    i18n("韩文"): "all_ko",
+    i18n("中英混合"): "zh",
+    i18n("日英混合"): "ja",
+    i18n("粤英混合"): "yue",
+    i18n("韩英混合"): "ko",
+    i18n("多语种混合"): "auto",
+    i18n("多语种混合(粤语)"): "auto_yue",
 }
 
 tokenizer = AutoTokenizer.from_pretrained(bert_path)
@@ -188,48 +176,11 @@ def resample(audio_tensor, sr0, sr1):
 from process_ckpt import get_sovits_version_from_path_fast, load_sovits_new
 
 
-def load_sovits_weights(sovits_path, prompt_language=None, text_language=None):
+def load_sovits_weights(sovits_path):
     global vq_model, hps, version, model_version, dict_language, if_lora_v3
     # "v2", "v4", False  for s2Gv4.pth
     version, model_version, if_lora_v3 = get_sovits_version_from_path_fast(sovits_path)
     print(sovits_path, version, model_version, if_lora_v3)
-
-    if prompt_language is not None and text_language is not None:
-        if prompt_language in list(dict_language.keys()):
-            prompt_text_update, prompt_language_update = (
-                {"__type__": "update"},
-                {"__type__": "update", "value": prompt_language},
-            )
-        else:
-            prompt_text_update = {"__type__": "update", "value": ""}
-            prompt_language_update = {"__type__": "update", "value": i18n("中文")}
-        if text_language in list(dict_language.keys()):
-            text_update, text_language_update = {"__type__": "update"}, {"__type__": "update", "value": text_language}
-        else:
-            text_update = {"__type__": "update", "value": ""}
-            text_language_update = {"__type__": "update", "value": i18n("中文")}
-
-        visible_sample_steps = True
-        visible_inp_refs = False
-
-        yield (
-            {"__type__": "update", "choices": list(dict_language.keys())},
-            {"__type__": "update", "choices": list(dict_language.keys())},
-            prompt_text_update,
-            prompt_language_update,
-            text_update,
-            text_language_update,
-            {
-                "__type__": "update",
-                "visible": visible_sample_steps,
-                "value": 8,
-                "choices": [4, 8, 16, 32],
-            },
-            {"__type__": "update", "visible": visible_inp_refs},
-            {"__type__": "update", "value": False, "interactive": False},
-            {"__type__": "update", "visible": False},
-            {"__type__": "update", "value": i18n("模型加载中，请等待"), "interactive": False},
-        )
 
     dict_s2 = load_sovits_new(sovits_path)
     hps = dict_s2["config"]
@@ -250,12 +201,7 @@ def load_sovits_weights(sovits_path, prompt_language=None, text_language=None):
         n_speakers=hps.data.n_speakers,
         **hps.model,
     )
-    # NOTE
-    if "pretrained" not in sovits_path:
-        try:
-            del vq_model.enc_q
-        except:
-            pass
+
     if is_half == True:
         vq_model = vq_model.half().to(device)
     else:
@@ -263,48 +209,9 @@ def load_sovits_weights(sovits_path, prompt_language=None, text_language=None):
     vq_model.eval()
     if if_lora_v3 == False:
         print("loading sovits_%s" % model_version, vq_model.load_state_dict(dict_s2["weight"], strict=False))
-    else:
-        path_sovits = sovits_path
-        print(
-            "loading sovits_%spretrained_G" % model_version,
-            vq_model.load_state_dict(load_sovits_new(path_sovits)["weight"], strict=False),
-        )
-        lora_rank = dict_s2["lora_rank"]
-        lora_config = LoraConfig(
-            target_modules=["to_k", "to_q", "to_v", "to_out.0"],
-            r=lora_rank,
-            lora_alpha=lora_rank,
-            init_lora_weights=True,
-        )
-        vq_model.cfm = get_peft_model(vq_model.cfm, lora_config)
-        print("loading sovits_%s_lora%s" % (model_version, lora_rank))
-        vq_model.load_state_dict(dict_s2["weight"], strict=False)
-        vq_model.cfm = vq_model.cfm.merge_and_unload()
-        # torch.save(vq_model.state_dict(),"merge_win.pth")
-        vq_model.eval()
-
-    yield (
-        {"__type__": "update", "choices": list(dict_language.keys())},
-        {"__type__": "update", "choices": list(dict_language.keys())},
-        prompt_text_update,
-        prompt_language_update,
-        text_update,
-        text_language_update,
-        {
-            "__type__": "update",
-            "visible": visible_sample_steps,
-            "value": 8,
-            "choices": [4, 8, 16, 32],
-        },
-        {"__type__": "update", "visible": visible_inp_refs},
-        {"__type__": "update", "value": False, "interactive": False},
-        {"__type__": "update", "visible": False},
-        {"__type__": "update", "value": i18n("合成语音"), "interactive": True},
-    )
 
 
 def load_gpt_weights(gpt_path):
-    # TODO: global hz, max_sec, t2s_model
     global hz, max_sec, t2s_model
     hz = 50
     dict_s1 = torch.load(gpt_path, map_location="cpu")
@@ -778,7 +685,6 @@ def cut4(inp):
     return "\n".join(opts)
 
 
-# contributed by https://github.com/AI-Hobbyist/GPT-SoVITS/blob/main/GPT_SoVITS/inference_webui.py
 def cut5(inp):
     inp = inp.strip("\n")
     punds = {",", ".", ";", "?", "!", "、", "，", "。", "？", "！", ";", "：", "…"}
