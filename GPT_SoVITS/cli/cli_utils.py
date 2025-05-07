@@ -246,7 +246,7 @@ def init_hifigan():
     )
     hifigan_model.eval()
     hifigan_model.remove_weight_norm()
-    state_dict_g = torch.load("GPT_SoVITS/pretrained_models/vocoder.pth", map_location="cpu")
+    state_dict_g = torch.load("GPT_SoVITS/pretrained_models/gsv-v4-pretrained/vocoder.pth", map_location="cpu")
     print("loading vocoder", hifigan_model.load_state_dict(state_dict_g))
     if is_half == True:
         hifigan_model = hifigan_model.half().to(device)

@@ -8,8 +8,6 @@ from GPT_SoVITS.cli.GPTSovitsTTS import GPTSovitsTTS
 
 def synthesize(ref_audio_path, ref_text, target_text, output_path, speed):
     tts = GPTSovitsTTS()
-    tts.load_gpt_weights("GPT_SoVITS/pretrained_models/s1v3.ckpt")
-    tts.load_sovits_weights("GPT_SoVITS/pretrained_models/s2Gv4.pth")
 
     # Synthesize audio
     # 默认中英文混合输入输出

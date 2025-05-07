@@ -81,7 +81,7 @@ def set_seed(seed):
     if seed == -1:
         seed = random.randint(0, 1000000)
     seed = int(seed)
-    print(f"Setting random seed to: {seed}")
+    # print(f"Setting random seed to: {seed}")
     random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
     np.random.seed(seed)
@@ -106,11 +106,15 @@ class GPTSovitsTTS:
     SPEC_MIN = -12
     SPEC_MAX = 2
 
-    def __init__(self, cnhubert_base_path=None, bert_path=None, hifigan_path=None, language=None, device=None, is_half=None, seed=-1):
+    # fmt: off
+    def __init__(self, gpt_weight_path=None, sovits_weight_path=None, cnhubert_base_path=None, bert_path=None, hifigan_path=None, language=None, device=None, is_half=None, seed=-1):
+    # fmt: on
         """
         Initializes the TTS system.
 
         Args:
+            gpt_weight_path (str, optional): Path to GPT model weights. Defaults to env var or hardcoded path.
+            sovits_weight_path (str, optional): Path to SoVITS model weights. Defaults to env var or hardcoded path.
             cnhubert_base_path (str, optional): Path to CNHubert model. Defaults to env var or hardcoded path.
             bert_path (str, optional): Path to BERT model. Defaults to env var or hardcoded path.
             hifigan_path (str, optional): Path to the HiFiGAN vocoder model .pth file. Defaults to a standard path.
@@ -119,13 +123,17 @@ class GPTSovitsTTS:
             is_half (bool, optional): Use half precision (FP16). Auto-detects if None (True if CUDA available).
             seed (int): Random seed for reproducibility. Set to -1 for random seed.
         """
-        print("Initializing GPTSovitsTTS...")
+        # print("Initializing GPTSovitsTTS...")
         set_seed(seed)
 
         # Determine configuration values
+        # fmt: off
+        self.gpt_weight_path = gpt_weight_path or os.environ.get("gpt_weight_path", "GPT_SoVITS/pretrained_models/s1v3.ckpt")
+        self.sovits_weight_path = sovits_weight_path or os.environ.get("sovits_weight_path", "GPT_SoVITS/pretrained_models/gsv-v4-pretrained/s2Gv4.pth")
         self.cnhubert_base_path = cnhubert_base_path or os.environ.get("cnhubert_base_path", "GPT_SoVITS/pretrained_models/chinese-hubert-base")
         self.bert_path = bert_path or os.environ.get("bert_path", "GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large")
-        self.hifigan_path = hifigan_path or os.path.join(os.getcwd(), "GPT_SoVITS/pretrained_models/vocoder.pth")
+        self.hifigan_path = hifigan_path or os.path.join(os.getcwd(), "GPT_SoVITS/pretrained_models/gsv-v4-pretrained/vocoder.pth")
+        # fmt: on
 
         if device:
             self.device = device
@@ -138,14 +146,14 @@ class GPTSovitsTTS:
             # Default: use half precision if CUDA is available
             self.is_half = eval(os.environ.get("is_half", "True")) and self.device == "cuda"
         self.dtype = torch.float16 if self.is_half else torch.float32
-        print(f"Using device: {self.device}")
-        print(f"Using half precision: {self.is_half}")
+        # print(f"Using device: {self.device}")
+        # print(f"Using half precision: {self.is_half}")
 
         # Setup i18n
         default_lang = os.environ.get("language", "Auto")
         self.language = language or (sys.argv[-1] if len(sys.argv) > 1 and sys.argv[-1] in scan_language_list() else default_lang)
         self.i18n = I18nAuto(language=self.language)
-        print(f"Default language set to: {self.language}")
+        # print(f"Default language set to: {self.language}")
 
         self.LANGUAGE_MAP = {
             self.i18n("中文"): "all_zh",
@@ -200,12 +208,15 @@ class GPTSovitsTTS:
                 "center": False,
             },
         )
-        print("GPTSovitsTTS initialized.")
+        self.load_gpt_weights(self.gpt_weight_path)
+        self.load_sovits_weights(self.sovits_weight_path)
+
+        # print("GPTSovitsTTS initialized.")
 
     # --- Model Loading ---
     def _load_bert_model(self):
         """Loads the BERT model and tokenizer."""
-        print(f"Loading BERT model from: {self.bert_path}")
+        # print(f"Loading BERT model from: {self.bert_path}")
         try:
             self.tokenizer = AutoTokenizer.from_pretrained(self.bert_path)
             self.bert_model = AutoModelForMaskedLM.from_pretrained(self.bert_path)
@@ -213,14 +224,14 @@ class GPTSovitsTTS:
                 self.bert_model = self.bert_model.half()
             self.bert_model = self.bert_model.to(self.device)
             self.bert_model.eval()
-            print("BERT model loaded successfully.")
+            # print("BERT model loaded successfully.")
         except Exception as e:
             print(f"Error loading BERT model: {e}")
             raise
 
     def _load_cnhubert_model(self):
         """Loads the CNHubert SSL model."""
-        print(f"Loading CNHubert model from: {self.cnhubert_base_path}")
+        # print(f"Loading CNHubert model from: {self.cnhubert_base_path}")
         try:
             # Set path for cnhubert module before loading
             cnhubert.cnhubert_base_path = self.cnhubert_base_path
@@ -229,7 +240,7 @@ class GPTSovitsTTS:
                 self.ssl_model = self.ssl_model.half()
             self.ssl_model = self.ssl_model.to(self.device)
             self.ssl_model.eval()
-            print("CNHubert model loaded successfully.")
+            # print("CNHubert model loaded successfully.")
         except Exception as e:
             print(f"Error loading CNHubert model: {e}")
             raise
@@ -238,7 +249,7 @@ class GPTSovitsTTS:
         """Initializes the HiFiGAN vocoder model."""
         if self.hifigan_model is not None:
             return  # Already initialized
-        print(f"Initializing HiFiGAN vocoder from: {self.hifigan_path}")
+        # print(f"Initializing HiFiGAN vocoder from: {self.hifigan_path}")
         if not os.path.exists(self.hifigan_path):
             raise FileNotFoundError(f"HiFiGAN vocoder model not found at: {self.hifigan_path}")
         try:
@@ -259,12 +270,12 @@ class GPTSovitsTTS:
 
             state_dict_g = torch.load(self.hifigan_path, map_location="cpu")
 
-            print(f"Loading HiFiGAN vocoder weights: {self.hifigan_model.load_state_dict(state_dict_g)}")
+            # print(f"Loading HiFiGAN vocoder weights: {self.hifigan_model.load_state_dict(state_dict_g)}")
 
             if self.is_half:
                 self.hifigan_model = self.hifigan_model.half()
             self.hifigan_model = self.hifigan_model.to(self.device)
-            print("HiFiGAN vocoder initialized successfully.")
+            # print("HiFiGAN vocoder initialized successfully.")
         except Exception as e:
             print(f"Error initializing HiFiGAN vocoder: {e}")
             raise
@@ -273,12 +284,12 @@ class GPTSovitsTTS:
         """Loads the SoVITS VQ model weights."""
         if not os.path.exists(sovits_path):
             raise FileNotFoundError(f"SoVITS weights not found at: {sovits_path}")
-        print(f"Loading SoVITS weights from: {sovits_path}")
+        # print(f"Loading SoVITS weights from: {sovits_path}")
         try:
             # Get model version info directly from the checkpoint file
             # Returned: version (e.g., "v2"), model_version (e.g., "v4"), if_lora_v3 (bool)
             _version_str, self.model_version, if_lora_v3 = get_sovits_version_from_path_fast(sovits_path)
-            print(f"Detected SoVITS info: version={_version_str}, model_version={self.model_version}, is_lora={if_lora_v3}")
+            # print(f"Detected SoVITS info: version={_version_str}, model_version={self.model_version}, is_lora={if_lora_v3}")
 
             # Load state dict and config
             dict_s2 = load_sovits_new(sovits_path)  # Assuming this function handles loading logic
@@ -294,7 +305,7 @@ class GPTSovitsTTS:
                 inferred_version = "v2"
             # Override hps version based on detection, primarily using model_version from fast check
             self.hps.model.version = self.model_version
-            print(f"Using SoVITS model version: {self.model_version} (Inferred internal: {inferred_version})")
+            # print(f"Using SoVITS model version: {self.model_version} (Inferred internal: {inferred_version})")
 
             self.vq_model = SynthesizerTrnV3(
                 self.hps.data.filter_length // 2 + 1,
@@ -310,13 +321,15 @@ class GPTSovitsTTS:
 
             # Load weights (handle potential LoRA)
             if not if_lora_v3:
-                print(f"Loading SoVITS weights (strict=False): {self.vq_model.load_state_dict(dict_s2['weight'], strict=False)}")
+                # print(f"Loading SoVITS weights (strict=False): {self.vq_model.load_state_dict(dict_s2['weight'], strict=False)}")
+                pass
             else:
                 # Handle LoRA loading if necessary (based on original logic if it existed)
-                print("LoRA detected - standard weight loading might be incomplete or incorrect if LoRA weights are separate.")
-                print(f"Attempting SoVITS LoRA weight load (strict=False): {self.vq_model.load_state_dict(dict_s2['weight'], strict=False)}")
+                # print("LoRA detected - standard weight loading might be incomplete or incorrect if LoRA weights are separate.")
+                # print(f"Attempting SoVITS LoRA weight load (strict=False): {self.vq_model.load_state_dict(dict_s2['weight'], strict=False)}")
+                pass
 
-            print("SoVITS weights loaded successfully.")
+            # print("SoVITS weights loaded successfully.")
         except Exception as e:
             print(f"Error loading SoVITS weights: {e}")
             raise
@@ -325,7 +338,7 @@ class GPTSovitsTTS:
         """Loads the GPT Text-to-Semantic model weights."""
         if not os.path.exists(gpt_path):
             raise FileNotFoundError(f"GPT weights not found at: {gpt_path}")
-        print(f"Loading GPT weights from: {gpt_path}")
+        # print(f"Loading GPT weights from: {gpt_path}")
         try:
             dict_s1 = torch.load(gpt_path, map_location="cpu")
             config = dict_s1["config"]
@@ -339,7 +352,7 @@ class GPTSovitsTTS:
                 self.t2s_model = self.t2s_model.half()
             self.t2s_model = self.t2s_model.to(self.device)
             self.t2s_model.eval()
-            print(f"GPT weights loaded successfully. max_sec={self.max_sec}, hz={self.hz}")
+            # print(f"GPT weights loaded successfully. max_sec={self.max_sec}, hz={self.hz}")
         except Exception as e:
             print(f"Error loading GPT weights: {e}")
             raise
@@ -351,7 +364,7 @@ class GPTSovitsTTS:
             return audio_tensor
         key = f"{sr0}-{sr1}"
         if key not in self.resample_transform_dict:
-            print(f"Creating resampler from {sr0} Hz to {sr1} Hz")
+            # print(f"Creating resampler from {sr0} Hz to {sr1} Hz")
             self.resample_transform_dict[key] = torchaudio.transforms.Resample(sr0, sr1).to(self.device)
         return self.resample_transform_dict[key](audio_tensor)
 
@@ -372,7 +385,7 @@ class GPTSovitsTTS:
         # Load with librosa, then convert to tensor
         audio, sr = librosa.load(filename, sr=sampling_rate)
         if sr != sampling_rate:
-            print(f"Warning: Audio loaded with sr={sr}, resampling to target {sampling_rate}")
+            # print(f"Warning: Audio loaded with sr={sr}, resampling to target {sampling_rate}")
             # Resample using librosa before converting to tensor if needed
             audio = librosa.resample(audio, orig_sr=sr, target_sr=sampling_rate)
 
@@ -381,7 +394,7 @@ class GPTSovitsTTS:
         # Normalize audio amplitude
         maxx = audio.abs().max()
         if maxx > 1:
-            print(f"Warning: Input audio max amplitude is {maxx:.2f} > 1. Normalizing.")
+            # print(f"Warning: Input audio max amplitude is {maxx:.2f} > 1. Normalizing.")
             audio /= maxx  # More robust normalization than clip/scale by 2
 
         audio_norm = audio.unsqueeze(0)  # Add batch dimension
@@ -413,7 +426,7 @@ class GPTSovitsTTS:
         if self.bert_model is None or self.tokenizer is None:
             raise RuntimeError("BERT model or tokenizer not loaded.")
         if not text:
-            print("Warning: Empty text provided to _get_bert_feature.")
+            # print("Warning: Empty text provided to _get_bert_feature.")
             raise ValueError("Text input is empty.")
 
         with torch.no_grad():
@@ -681,7 +694,7 @@ class GPTSovitsTTS:
 
         # Merge last chunk if too short
         if len(opts) > 1 and len(opts[-1]) < 25:  # Use a threshold smaller than 50
-            print(f"Merging short last chunk (len {len(opts[-1])}) with previous.")
+            # print(f"Merging short last chunk (len {len(opts[-1])}) with previous.")
             opts[-2] = opts[-2] + opts[-1]
             opts = opts[:-1]
 
@@ -1035,7 +1048,7 @@ class GPTSovitsTTS:
             else:  # Only reference processing time is available
                 print(f"Timings (s): Ref={ref_proc_time:.3f}\t (No target segments processed)")
 
-        # t_overall_end = ttime()
-        # print(f"Total function runtime: {t_overall_end - t0_overall_start:.3f}s") # Optional overall time
+        t_overall_end = ttime()
+        print(f"Total function runtime: {t_overall_end - t0_overall_start:.3f}s") # Optional overall time
 
         yield output_sr, final_audio_int16
