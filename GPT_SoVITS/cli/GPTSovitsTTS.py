@@ -4,7 +4,7 @@ import os
 import re
 import sys
 import random
-from time import time as ttime
+from time import time
 
 # --- Suppress excessive logging ---
 logging.getLogger("markdown_it").setLevel(logging.ERROR)
@@ -35,12 +35,12 @@ package_root = os.path.abspath(os.path.join(current_dir, ".."))
 if package_root not in sys.path:
     sys.path.insert(0, package_root)
 from text.LangSegmenter import LangSegmenter
-from feature_extractor import cnhubert  # Needs cnhubert_base_path set
+from feature_extractor import cnhubert
 from GPT_SoVITS.module.models import SynthesizerTrnV3, Generator
 from AR.models.t2s_lightning_module import Text2SemanticLightningModule
 from text import cleaned_text_to_sequence
 from text.cleaner import clean_text
-from text import chinese  # For normalization
+from text import chinese
 from tools.i18n.i18n import I18nAuto, scan_language_list
 from process_ckpt import get_sovits_version_from_path_fast, load_sovits_new
 from module.mel_processing import mel_spectrogram_torch, spectrogram_torch
@@ -128,7 +128,7 @@ class GPTSovitsTTS:
         # print("Initializing GPTSovitsTTS...")
         set_seed(seed)
 
-        # Determine configuration values
+        # Use package_root for more robust default paths
         # fmt: off
         self.gpt_weight_path = gpt_weight_path or os.environ.get("gpt_weight_path", os.path.join(package_root, "pretrained_models/s1v3.ckpt"))
         self.sovits_weight_path = sovits_weight_path or os.environ.get("sovits_weight_path", os.path.join(package_root, "pretrained_models/s2Gv4.pth"))
@@ -137,16 +137,12 @@ class GPTSovitsTTS:
         self.hifigan_path = hifigan_path or os.environ.get("hifigan_path", os.path.join(package_root, "pretrained_models/vocoder.pth"))
         # fmt: on
 
-        if device:
-            self.device = device
-        else:
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        if is_half is not None:
-            self.is_half = is_half and self.device == "cuda"
-        else:
-            self.is_half = False
-            # Default: use half precision if CUDA is available
-            self.is_half = eval(os.environ.get("is_half", "True")) and self.device == "cuda"
+        if device: self.device = device
+        else: self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        if is_half is not None: self.is_half = is_half and self.device == "cuda"
+        else: self.is_half = eval(os.environ.get("is_half", "True")) and self.device == "cuda"
+
         self.dtype = torch.float16 if self.is_half else torch.float32
         # print(f"Using device: {self.device}")
         # print(f"Using half precision: {self.is_half}")
@@ -217,76 +213,44 @@ class GPTSovitsTTS:
 
     # --- Model Loading ---
     def _load_bert_model(self):
-        """Loads the BERT model and tokenizer."""
-        # print(f"Loading BERT model from: {self.bert_path}")
         try:
             self.tokenizer = AutoTokenizer.from_pretrained(self.bert_path)
             self.bert_model = AutoModelForMaskedLM.from_pretrained(self.bert_path)
-            if self.is_half:
-                self.bert_model = self.bert_model.half()
-            self.bert_model = self.bert_model.to(self.device)
-            self.bert_model.eval()
-            # print("BERT model loaded successfully.")
-        except Exception as e:
-            print(f"Error loading BERT model: {e}")
-            raise
+            if self.is_half: self.bert_model = self.bert_model.half()
+            self.bert_model = self.bert_model.to(self.device); self.bert_model.eval()
+        except Exception as e: print(f"Error loading BERT: {e}"); raise
 
     def _load_cnhubert_model(self):
-        """Loads the CNHubert SSL model."""
-        # print(f"Loading CNHubert model from: {self.cnhubert_base_path}")
         try:
-            # Set path for cnhubert module before loading
             cnhubert.cnhubert_base_path = self.cnhubert_base_path
             self.ssl_model = cnhubert.get_model()
-            if self.is_half:
-                self.ssl_model = self.ssl_model.half()
-            self.ssl_model = self.ssl_model.to(self.device)
-            self.ssl_model.eval()
-            # print("CNHubert model loaded successfully.")
-        except Exception as e:
-            print(f"Error loading CNHubert model: {e}")
-            raise
+            if self.is_half: self.ssl_model = self.ssl_model.half()
+            self.ssl_model = self.ssl_model.to(self.device); self.ssl_model.eval()
+        except Exception as e: print(f"Error loading CNHubert: {e}"); raise
 
     def _init_hifigan(self):
-        """Initializes the HiFiGAN vocoder model."""
-        if self.hifigan_model is not None:
-            return  # Already initialized
-        # print(f"Initializing HiFiGAN vocoder from: {self.hifigan_path}")
-        if not os.path.exists(self.hifigan_path):
-            raise FileNotFoundError(f"HiFiGAN vocoder model not found at: {self.hifigan_path}")
+        if self.hifigan_model is not None: return
+        if not os.path.exists(self.hifigan_path): raise FileNotFoundError(f"HiFiGAN missing: {self.hifigan_path}")
         try:
-            # Using v4 parameters directly as in the original script
             self.hifigan_model = Generator(
-                initial_channel=100,
-                resblock="1",
-                resblock_kernel_sizes=[3, 7, 11],
+                initial_channel=100, resblock="1", resblock_kernel_sizes=[3, 7, 11],
                 resblock_dilation_sizes=[[1, 3, 5], [1, 3, 5], [1, 3, 5]],
-                upsample_rates=[10, 6, 2, 2, 2],
-                upsample_initial_channel=512,
-                upsample_kernel_sizes=[20, 12, 4, 4, 4],
-                gin_channels=0,
-                is_bias=True,
+                upsample_rates=[10, 6, 2, 2, 2], upsample_initial_channel=512,
+                upsample_kernel_sizes=[20, 12, 4, 4, 4], gin_channels=0, is_bias=True,
             )
-            self.hifigan_model.eval()
-            self.hifigan_model.remove_weight_norm()
+            self.hifigan_model.eval(); self.hifigan_model.remove_weight_norm()
 
             state_dict_g = torch.load(self.hifigan_path, map_location="cpu")
 
             print(f"Loading HiFiGAN vocoder weights: {self.hifigan_model.load_state_dict(state_dict_g)}")
 
-            if self.is_half:
-                self.hifigan_model = self.hifigan_model.half()
+            if self.is_half: self.hifigan_model = self.hifigan_model.half()
             self.hifigan_model = self.hifigan_model.to(self.device)
             # print("HiFiGAN vocoder initialized successfully.")
-        except Exception as e:
-            print(f"Error initializing HiFiGAN vocoder: {e}")
-            raise
+        except Exception as e: print(f"Error initializing HiFiGAN: {e}"); raise
 
     def load_sovits_weights(self, sovits_path):
-        """Loads the SoVITS VQ model weights."""
-        if not os.path.exists(sovits_path):
-            raise FileNotFoundError(f"SoVITS weights not found at: {sovits_path}")
-        # print(f"Loading SoVITS weights from: {sovits_path}")
+        if not os.path.exists(sovits_path): raise FileNotFoundError(f"SoVITS weights missing: {sovits_path}")
         try:
             # Get model version info directly from the checkpoint file
             # Returned: version (e.g., "v2"), model_version (e.g., "v4"), if_lora_v3 (bool)
@@ -294,9 +258,9 @@ class GPTSovitsTTS:
             # print(f"Detected SoVITS info: version={_version_str}, model_version={self.model_version}, is_lora={if_lora_v3}")
 
             # Load state dict and config
-            dict_s2 = load_sovits_new(sovits_path)  # Assuming this function handles loading logic
+            dict_s2 = load_sovits_new(sovits_path)
             self.hps = DictToAttrRecursive(dict_s2["config"])
-            self.hps.model.semantic_frame_rate = "25hz"  # Ensure this is set
+            self.hps.model.semantic_frame_rate = "25hz"
 
             # Determine actual internal version based on embedding shape (if needed, might be redundant with get_sovits_version_from_path_fast)
             if "enc_p.text_embedding.weight" not in dict_s2["weight"]:
@@ -312,14 +276,11 @@ class GPTSovitsTTS:
             self.vq_model = SynthesizerTrnV3(
                 self.hps.data.filter_length // 2 + 1,
                 self.hps.train.segment_size // self.hps.data.hop_length,
-                n_speakers=self.hps.data.n_speakers,
-                **self.hps.model,
+                n_speakers=self.hps.data.n_speakers, **self.hps.model,
             )
 
-            if self.is_half:
-                self.vq_model = self.vq_model.half()
-            self.vq_model = self.vq_model.to(self.device)
-            self.vq_model.eval()
+            if self.is_half: self.vq_model = self.vq_model.half()
+            self.vq_model = self.vq_model.to(self.device); self.vq_model.eval()
 
             # Load weights (handle potential LoRA)
             if not if_lora_v3:
@@ -330,14 +291,10 @@ class GPTSovitsTTS:
                 print(f"Attempting SoVITS LoRA weight load (strict=False): {self.vq_model.load_state_dict(dict_s2['weight'], strict=False)}")
 
             # print("SoVITS weights loaded successfully.")
-        except Exception as e:
-            print(f"Error loading SoVITS weights: {e}")
-            raise
+        except Exception as e: print(f"Error loading SoVITS weights: {e}"); raise
 
     def load_gpt_weights(self, gpt_path):
-        """Loads the GPT Text-to-Semantic model weights."""
-        if not os.path.exists(gpt_path):
-            raise FileNotFoundError(f"GPT weights not found at: {gpt_path}")
+        if not os.path.exists(gpt_path): raise FileNotFoundError(f"GPT weights missing: {gpt_path}")
         # print(f"Loading GPT weights from: {gpt_path}")
         try:
             dict_s1 = torch.load(gpt_path, map_location="cpu")
@@ -345,23 +302,17 @@ class GPTSovitsTTS:
             self.max_sec = config["data"]["max_sec"]
             self.hz = 50  # Often 50hz
 
-            self.t2s_model = Text2SemanticLightningModule(config, "****", is_train=False)  # "****" placeholder might be for phonemes?
+            self.t2s_model = Text2SemanticLightningModule(config, "****", is_train=False)
             self.t2s_model.load_state_dict(dict_s1["weight"])
 
-            if self.is_half:
-                self.t2s_model = self.t2s_model.half()
-            self.t2s_model = self.t2s_model.to(self.device)
-            self.t2s_model.eval()
+            if self.is_half: self.t2s_model = self.t2s_model.half()
+            self.t2s_model = self.t2s_model.to(self.device); self.t2s_model.eval()
             # print(f"GPT weights loaded successfully. max_sec={self.max_sec}, hz={self.hz}")
-        except Exception as e:
-            print(f"Error loading GPT weights: {e}")
-            raise
+        except Exception as e: print(f"Error loading GPT weights: {e}"); raise
 
     # --- Preprocessing Helpers ---
     def _resample(self, audio_tensor, sr0, sr1):
-        """Resamples audio tensor using cached transform."""
-        if sr0 == sr1:
-            return audio_tensor
+        if sr0 == sr1: return audio_tensor
         key = f"{sr0}-{sr1}"
         if key not in self.resample_transform_dict:
             # print(f"Creating resampler from {sr0} Hz to {sr1} Hz")
@@ -378,8 +329,7 @@ class GPTSovitsTTS:
 
     def _get_spepc(self, filename):
         """Loads audio and computes spectrogram."""
-        if not self.hps:
-            raise RuntimeError("SoVITS HPS not loaded. Load SoVITS weights first.")
+        if not self.hps: raise RuntimeError("SoVITS HPS not loaded.")
 
         sampling_rate = int(self.hps.data.sampling_rate)
         # Load with librosa, then convert to tensor
@@ -491,15 +441,10 @@ class GPTSovitsTTS:
 
     def _get_bert_inf(self, phones, word2ph, norm_text, language):
         """Gets BERT features, providing zeros for non-Chinese languages."""
-        language_cleaned = language.replace("all_", "")
+        lang_clean = language.replace("all_", "")
         # Only compute BERT for Chinese ('zh')
-        if language_cleaned == "zh":
-            # Ensure dtype is applied correctly
-            bert_features = self._get_bert_feature(norm_text, word2ph)  # Already on device
-            return bert_features.to(self.dtype)
-        else:
-            # Return zeros for other languages
-            return torch.zeros((1024, len(phones)), dtype=self.dtype).to(self.device)
+        if lang_clean == "zh": return self._get_bert_feature(norm_text, word2ph).to(self.dtype)
+        else: return torch.zeros((1024, len(phones)), dtype=self.dtype).to(self.device)
 
     def _get_phones_and_bert(self, text, language, final=False):
         """Processes text for phones and BERT features based on language mode."""
@@ -793,262 +738,313 @@ class GPTSovitsTTS:
 
     # --- Core Synthesis ---
     @torch.inference_mode()
-    def get_tts_wav(
-        self,
-        ref_wav_path,
-        prompt_text,
-        text,
-        prompt_language=None,
-        text_language=None,
-        top_k=20,
-        top_p=0.6,
-        temperature=0.6,
-        speed=1.0,
-        if_freeze=False,
-        sample_steps=8,
-        pause_second=0.3,
-        how_to_cut="不切",
-        output_sr=48000,
-    ):
+    def process_reference_audio(self, ref_wav_path, prompt_text,
+                                prompt_language=None,
+                                pause_second_for_ssl_conditioning=0.0): # Specific pause for SSL input
         """
-        Generates TTS audio based on reference audio/text and target text.
-
-        Args:
-        ref_wav_path (str): Path to the reference WAV file (16kHz recommended).
-        prompt_text (str): Text corresponding to the reference audio.
-        text (str): The target text to synthesize.
-        prompt_language (str, optional): Language of the prompt_text (e.g., "中英混合"). Defaults to class language setting.
-        text_language (str, optional): Language of the target text (e.g., "中英混合"). Defaults to class language setting.
-        top_k (int): Top K sampling for GPT model.
-        top_p (float): Top P sampling for GPT model.
-        temperature (float): Sampling temperature for GPT model.
-        speed (float): Controls the speed of the generated speech. Lower is slower.
-        if_freeze (bool): Use caching within the call (for repeated identical segments).
-        sample_steps (int): Number of steps for CFM inference.
-        pause_second (float): Duration of silence inserted between text chunks.
-        how_to_cut (str): Text splitting method key (e.g., "不切", "凑四句一切").
-        output_sr (int): The desired sampling rate for the output audio.
-
-        Yields:
-        tuple: (sampling_rate, audio_numpy_array)
-        Only yields the final concatenated audio for the entire input text.
+        Processes reference audio and text to extract artifacts for target speech synthesis.
+        This helps avoid reprocessing the same reference material multiple times.
         """
-        # --- Timing Initialization ---
-        time_log_segments = []  # Equivalent to 't' in original
-        t0_overall_start = ttime()  # For overall timing, not part of the original specific print
+        print(f"Processing reference audio: {ref_wav_path}")
+        t_ref_proc_start = time()
 
-        # --- Language and Initial Setup ---
+        # Determine prompt language code
+        # Uses class's i18n instance and default "中英混合" if prompt_language is None
         prompt_lang_key_arg = prompt_language if prompt_language is not None else self.i18n("中英混合")
-        text_lang_key_arg = text_language if text_language is not None else self.i18n("中英混合")
         _prompt_lang_code = self.LANGUAGE_MAP.get(prompt_lang_key_arg, prompt_lang_key_arg)
-        _text_lang_code = self.LANGUAGE_MAP.get(text_lang_key_arg, text_lang_key_arg)
+        # Fallback if key isn't in map (e.g., if user provides direct code like "zh")
+        if _prompt_lang_code == prompt_lang_key_arg and prompt_lang_key_arg not in self.LANGUAGE_MAP.values():
+             print(f"Warning: Prompt language key '{prompt_lang_key_arg}' not in LANGUAGE_MAP, using as direct code.")
 
-        prompt_text = prompt_text.strip("\n")
-        if prompt_text and prompt_text[-1] not in self.SPLITS:
-            prompt_text += "。" if _prompt_lang_code != "en" else "."
-        text = text.strip("\n")
 
-        zero_wav = np.zeros(
-            int(self.hps.data.sampling_rate * pause_second),
-            dtype=np.float16 if self.is_half else np.float32,
-        )
-        zero_wav_torch = torch.from_numpy(zero_wav)
-        if self.is_half:
-            zero_wav_torch = zero_wav_torch.half().to(self.device)
-        else:
-            zero_wav_torch = zero_wav_torch.to(self.device)
+        prompt_text_cleaned = prompt_text.strip("\n")
+        if prompt_text_cleaned and prompt_text_cleaned[-1] not in self.SPLITS:
+            prompt_text_cleaned += "。" if _prompt_lang_code != "en" else "."
 
-        # --- Reference Audio Processing ---
-        t_ref_start = ttime()  # t0 in original for the first segment
+        # Create zero_wav for SSL processing if pause_second_for_ssl_conditioning > 0
+        # This pause is specifically for conditioning the SSL input with silence at the end
+        zero_wav_ssl_torch = None
+        if pause_second_for_ssl_conditioning > 0 and self.hps: # ensure hps is loaded
+            zero_wav_ssl_np = np.zeros(
+                int(self.hps.data.sampling_rate * pause_second_for_ssl_conditioning),
+                dtype=np.float16 if self.is_half else np.float32,
+            )
+            zero_wav_ssl_torch = torch.from_numpy(zero_wav_ssl_np)
+            if self.is_half: zero_wav_ssl_torch = zero_wav_ssl_torch.half()
+            zero_wav_ssl_torch = zero_wav_ssl_torch.to(self.device)
 
-        wav16k, sr = librosa.load(ref_wav_path, sr=16000)
-        if wav16k.ndim > 1:
-            wav16k = librosa.to_mono(wav16k)
+        wav16k, sr = librosa.load(ref_wav_path, sr=16000) # Target 16kHz for CNHubert
+        if wav16k.ndim > 1: wav16k = librosa.to_mono(wav16k)
         wav16k_torch = torch.from_numpy(wav16k)
-        if self.is_half:
-            wav16k_torch = wav16k_torch.half().to(self.device)
-        else:
-            wav16k_torch = wav16k_torch.to(self.device)
-        wav16k_torch = torch.cat([wav16k_torch, zero_wav_torch], dim=0)
+        if self.is_half: wav16k_torch = wav16k_torch.half()
+        wav16k_torch = wav16k_torch.to(self.device)
+
+        if zero_wav_ssl_torch is not None:
+            wav16k_torch = torch.cat([wav16k_torch, zero_wav_ssl_torch], dim=0)
 
         ssl_content = self.ssl_model.model(wav16k_torch.unsqueeze(0))["last_hidden_state"].transpose(1, 2)
-        codes = self.vq_model.extract_latent(ssl_content.to(self.dtype))
-        prompt_semantic_float = codes[0, 0]
-        prompt_for_t2s = prompt_semantic_float.unsqueeze(0).to(self.device)
-        prompt_for_vq = prompt_semantic_float.unsqueeze(0).unsqueeze(0).to(self.device).long()
+        codes = self.vq_model.extract_latent(ssl_content.to(self.dtype)) # Ensure dtype for VQ
 
-        t_ref_end_and_global_text_proc_start = ttime()  # t1 in original after ref processing
-        time_log_segments.append(t_ref_end_and_global_text_proc_start - t_ref_start)
+        prompt_semantic_float = codes[0, 0] # Shape [T_codes_ref]
+        # For T2S model (expects float)
+        prompt_for_t2s = prompt_semantic_float.unsqueeze(0).to(self.device) # Shape [1, T_codes_ref]
+        # For VQ model's decode_encp (expects long indices and specific shape)
+        prompt_for_vq = prompt_semantic_float.unsqueeze(0).unsqueeze(0).to(self.device).long() # Shape [1, 1, T_codes_ref]
 
-        # --- Text Cutting and Initial Prompt Text Processing ---
-        how_to_cut_i18n = self.i18n(how_to_cut)
-        if how_to_cut_i18n == self.i18n("凑四句一切"):
-            text = self._cut1(text)
-        elif how_to_cut_i18n == self.i18n("凑50字一切"):
-            text = self._cut2(text)
-        # ... (other cut conditions) ...
-        elif how_to_cut_i18n == self.i18n("按标点符号切"):
-            text = self._cut5(text)
+        phones1, bert1, norm_text1 = self._get_phones_and_bert(prompt_text_cleaned, _prompt_lang_code)
+        phoneme_ids0_dev = torch.LongTensor(phones1).to(self.device).unsqueeze(0)
 
-        while "\n\n" in text:
-            text = text.replace("\n\n", "\n")
-        texts = text.split("\n")
-        texts = self._process_text_input(texts)
-        texts = self._merge_short_text_in_array(texts, 5)
+        refer_spec = self._get_spepc(ref_wav_path).to(self.device, self.dtype)
 
-        audio_opt = []
-        phones1, bert1, norm_text1 = self._get_phones_and_bert(prompt_text, _prompt_lang_code)
-        cache = {}
+        fea_ref_initial, ge = self.vq_model.decode_encp(prompt_for_vq, phoneme_ids0_dev, refer_spec)
 
-        # This t_prev_stage_end will function as 't1' in the original loop's t.extend([t2-t1, ...])
-        t_prev_stage_end = t_ref_end_and_global_text_proc_start  # Initial t1 for the first segment's t2-t1
+        # Prepare mel and feature context for CFM based on the reference audio
+        ref_audio_v4, sr_v4 = torchaudio.load(ref_wav_path)
+        ref_audio_v4 = ref_audio_v4.to(self.device, torch.float32) # Use float32 for audio processing
+        if ref_audio_v4.shape[0] > 1: ref_audio_v4 = ref_audio_v4.mean(0, keepdim=True)
 
-        # --- Per-Segment Inference Loop ---
-        for i_text, text_segment in enumerate(texts):
-            if not text_segment.strip():
-                # If skipping, ensure t_prev_stage_end is updated to maintain correct inter-segment timing
-                # if significant work happened before skip, or just use current time
-                t_prev_stage_end = ttime()  # Reset start for next segment's text processing phase
+        tgt_sr_v4 = 32000 # Target SR for v4 mel calculation
+        if sr_v4 != tgt_sr_v4: ref_audio_v4 = self._resample(ref_audio_v4, sr_v4, tgt_sr_v4)
+
+        mel_ref_v4_initial = self.mel_fn_v4(ref_audio_v4)
+        mel_ref_v4_initial = self._norm_spec(mel_ref_v4_initial) # Shape [1, MelBins, T_mel_initial]
+
+        # Align mel and VQ features from reference
+        T_min_aligned = min(mel_ref_v4_initial.shape[2], fea_ref_initial.shape[2])
+        mel_ref_v4_aligned = mel_ref_v4_initial[:, :, :T_min_aligned]
+        fea_ref_aligned = fea_ref_initial[:, :, :T_min_aligned]
+
+        # Truncate for CFM context (e.g., last Tref_cfm_context frames)
+        Tref_cfm_context = 500
+        T_min_final_for_cfm_context = T_min_aligned
+        if T_min_aligned > Tref_cfm_context:
+            mel_ref_cfm_context = mel_ref_v4_aligned[:, :, -Tref_cfm_context:]
+            fea_ref_cfm_context = fea_ref_aligned[:, :, -Tref_cfm_context:]
+            T_min_final_for_cfm_context = Tref_cfm_context
+        else:
+            mel_ref_cfm_context = mel_ref_v4_aligned
+            fea_ref_cfm_context = fea_ref_aligned
+            # T_min_final_for_cfm_context remains T_min_aligned
+
+        t_ref_proc_end = time()
+        ref_proc_duration = t_ref_proc_end - t_ref_proc_start
+        print(f"Reference audio processing completed in {ref_proc_duration:.3f}s")
+
+        return {
+            "prompt_for_t2s": prompt_for_t2s,
+            "phones1": phones1,
+            "bert1": bert1,
+            "norm_text1": norm_text1,
+            "refer_spec": refer_spec, # Spectrogram from _get_spepc
+            "ge": ge,                 # Speaker embedding
+            "mel_ref_cfm_context": mel_ref_cfm_context.to(self.dtype), # Initial mel context for CFM
+            "fea_ref_cfm_context": fea_ref_cfm_context,          # Initial feature context for CFM
+            "T_min_cfm_context": T_min_final_for_cfm_context     # Length of the CFM context
+        }
+
+    @torch.inference_mode()
+    def synthesize_target_speech(self, reference_artifacts: dict, target_text: str,
+                                 text_language=None, top_k=20, top_p=0.6, temperature=0.6,
+                                 speed=1.0, if_freeze=False, sample_steps=8,
+                                 pause_second=0.3, how_to_cut="不切", output_sr=48000):
+        """
+        Synthesizes target speech using precomputed reference artifacts.
+        """
+        t_overall_target_synth_start = time()
+        # For detailed timing of TextProc, GPT, VQ/Voc for target segments
+        time_log_segments_target_details = []
+
+        # Retrieve precomputed items from reference_artifacts
+        prompt_for_t2s = reference_artifacts["prompt_for_t2s"]
+        phones1 = reference_artifacts["phones1"]
+        bert1 = reference_artifacts["bert1"]
+        # norm_text1 = reference_artifacts["norm_text1"] # Available if needed for logging
+        refer_spec = reference_artifacts["refer_spec"]
+        ge_speaker_embedding = reference_artifacts["ge"]
+        # Initial CFM contexts from reference processing
+        mel_context_from_ref = reference_artifacts["mel_ref_cfm_context"]
+        fea_context_from_ref = reference_artifacts["fea_ref_cfm_context"]
+        T_min_for_cfm_context_window = reference_artifacts["T_min_cfm_context"]
+
+
+        _text_lang_code = self.LANGUAGE_MAP.get(
+            text_language if text_language is not None else self.i18n("中英混合"),
+            text_language if text_language is not None else "zh" # Fallback
+        )
+        if _text_lang_code == (text_language if text_language is not None else self.i18n("中英混合")) and \
+           _text_lang_code not in self.LANGUAGE_MAP.values():
+             print(f"Warning: Text language key '{_text_lang_code}' not in LANGUAGE_MAP, using as direct code.")
+
+
+        # Prepare silence tensor for pauses between synthesized segments
+        zero_wav_inter_segment_np = np.zeros(
+            int(self.hps.data.sampling_rate * pause_second), # Use self.hps here
+            dtype=np.float16 if self.is_half else np.float32,
+        )
+        zero_wav_torch_inter_segment = torch.from_numpy(zero_wav_inter_segment_np)
+        if self.is_half: zero_wav_torch_inter_segment = zero_wav_torch_inter_segment.half()
+        zero_wav_torch_inter_segment = zero_wav_torch_inter_segment.to(self.device)
+
+        # Text Cutting for target_text
+        target_text_cleaned = target_text.strip("\n")
+        how_to_cut_i18n = self.i18n(how_to_cut) # Use self.i18n
+        if how_to_cut_i18n == self.i18n("凑四句一切"): target_text_processed = self._cut1(target_text_cleaned)
+        elif how_to_cut_i18n == self.i18n("凑50字一切"): target_text_processed = self._cut2(target_text_cleaned)
+        elif how_to_cut_i18n == self.i18n("按中文句号。切"): target_text_processed = self._cut3(target_text_cleaned)
+        elif how_to_cut_i18n == self.i18n("按英文句号.切"): target_text_processed = self._cut4(target_text_cleaned)
+        elif how_to_cut_i18n == self.i18n("按标点符号切"): target_text_processed = self._cut5(target_text_cleaned)
+        else: target_text_processed = target_text_cleaned # Default is "不切"
+
+        while "\n\n" in target_text_processed: target_text_processed = target_text_processed.replace("\n\n", "\n")
+
+        texts_segments = target_text_processed.split("\n")
+        texts_segments = self._process_text_input(texts_segments) # Assuming this exists
+        texts_segments = self._merge_short_text_in_array(texts_segments, 5) # Assuming this exists
+
+        audio_opt_list = []
+        cache_target_segments = {} # Local cache for if_freeze
+
+        # Start time for the text processing phase of the first target segment
+        t_prev_stage_end_timestamp = time()
+
+        for i_text, text_segment_loop_content in enumerate(texts_segments):
+            if not text_segment_loop_content.strip():
+                t_prev_stage_end_timestamp = time() # Update timestamp even if skipping
                 continue
 
-            if text_segment[-1] not in self.SPLITS:
-                text_segment += "。" if _text_lang_code != "en" else "."
+            current_target_segment_text = text_segment_loop_content
+            if current_target_segment_text[-1] not in self.SPLITS: # Use self.SPLITS
+                current_target_segment_text += "。" if _text_lang_code != "en" else "."
 
-            # Current segment's text processing (phones2, bert2) happens here
-            # before t_gpt_infer_start
-            phones2, bert2, norm_text2 = self._get_phones_and_bert(text_segment, _text_lang_code)
-            bert_combined = torch.cat([bert1, bert2], 1)
-            all_phoneme_ids = torch.LongTensor(phones1 + phones2).to(self.device).unsqueeze(0)
-            bert_combined = bert_combined.to(self.device).unsqueeze(0)
-            all_phoneme_len = torch.tensor([all_phoneme_ids.shape[-1]]).to(self.device)
+            phones2, bert2, norm_text2 = self._get_phones_and_bert(current_target_segment_text, _text_lang_code)
 
-            t_gpt_infer_start = ttime()  # t2 in original loop
+            bert_combined_features = torch.cat([bert1, bert2], 1) # bert1 from reference_artifacts
+            all_phoneme_ids_combined = torch.LongTensor(phones1 + phones2).to(self.device).unsqueeze(0) # phones1 from ref
+            bert_combined_features_batch = bert_combined_features.to(self.device).unsqueeze(0) # Ensure on device and batched
+            all_phoneme_len_combined = torch.tensor([all_phoneme_ids_combined.shape[-1]]).to(self.device)
 
-            if i_text in cache and if_freeze == True:
-                pred_semantic = cache[i_text]
+            t_gpt_infer_start_timestamp = time()
+
+            if i_text in cache_target_segments and if_freeze:
+                pred_semantic_float_segment = cache_target_segments[i_text]
             else:
-                pred_semantic, idx = self.t2s_model.model.infer_panel(
-                    all_phoneme_ids,
-                    all_phoneme_len,
-                    prompt_for_t2s.to(self.t2s_model.device),
-                    bert_combined.to(self.t2s_model.device),
-                    top_k=top_k,
-                    top_p=top_p,
-                    temperature=temperature,
-                    early_stop_num=self.hz * self.max_sec,
+                pred_semantic_float_segment, idx_gpt = self.t2s_model.model.infer_panel(
+                    all_phoneme_ids_combined, all_phoneme_len_combined,
+                    prompt_for_t2s.to(self.t2s_model.device), # from reference_artifacts, ensure on T2S model device
+                    bert_combined_features_batch.to(self.t2s_model.device), # ensure on T2S model device
+                    top_k=top_k, top_p=top_p, temperature=temperature,
+                    early_stop_num=self.hz * self.max_sec # self.hz and self.max_sec from class
                 )
-                pred_semantic = pred_semantic[:, -idx:].unsqueeze(0)
-                cache[i_text] = pred_semantic
+                pred_semantic_float_segment = pred_semantic_float_segment[:, -idx_gpt:].unsqueeze(0) # Shape [1,1,T_pred_codes]
+                if if_freeze: cache_target_segments[i_text] = pred_semantic_float_segment
 
-            t_gpt_infer_end_and_vq_start = ttime()  # t3 in original loop
+            t_gpt_infer_end_and_vq_start_timestamp = time()
+            pred_semantic_for_vq_segment = pred_semantic_float_segment.to(self.device).long() # Convert to Long for VQ
 
-            # VQ (SoVITS) + CFM Decoder
-            refer_spec = self._get_spepc(ref_wav_path).to(self.device, self.dtype)
-            phoneme_ids0_dev = torch.LongTensor(phones1).to(self.device).unsqueeze(0)
-            phoneme_ids1_dev = torch.LongTensor(phones2).to(self.device).unsqueeze(0)
+            phoneme_ids1_dev_segment = torch.LongTensor(phones2).to(self.device).unsqueeze(0)
 
-            fea_ref, ge = self.vq_model.decode_encp(prompt_for_vq, phoneme_ids0_dev, refer_spec)
+            # VQ/CFM part
+            # These are the initial contexts for *each segment's* CFM loop, derived from the reference.
+            current_mel_cfm_context = mel_context_from_ref
+            current_fea_cfm_context = fea_context_from_ref
 
-            ref_audio_v4, sr_v4 = torchaudio.load(ref_wav_path)
-            ref_audio_v4 = ref_audio_v4.to(self.device, torch.float32)
-            if ref_audio_v4.shape[0] > 1:
-                ref_audio_v4 = ref_audio_v4.mean(0, keepdim=True)
-            tgt_sr_v4 = 32000
-            if sr_v4 != tgt_sr_v4:
-                ref_audio_v4 = self._resample(ref_audio_v4, sr_v4, tgt_sr_v4)
-            mel_ref_v4 = self.mel_fn_v4(ref_audio_v4)
-            mel_ref_v4 = self._norm_spec(mel_ref_v4)
-            T_min = min(mel_ref_v4.shape[2], fea_ref.shape[2])
-            mel_ref_v4 = mel_ref_v4[:, :, :T_min]
-            fea_ref = fea_ref[:, :, :T_min]
-            Tref, Tchunk = 500, 1000
-            if T_min > Tref:
-                mel_ref_v4 = mel_ref_v4[:, :, -Tref:]
-                fea_ref = fea_ref[:, :, -Tref:]
-                T_min = Tref
-            chunk_len = Tchunk - T_min
-            mel_context = mel_ref_v4.to(self.dtype)
-            fea_context = fea_ref
+            fea_todo_segment, ge_updated_segment = self.vq_model.decode_encp(
+                pred_semantic_for_vq_segment, phoneme_ids1_dev_segment,
+                refer_spec, # from reference_artifacts
+                ge_speaker_embedding, # from reference_artifacts, this is the initial 'ge'
+                speed
+            )
 
-            fea_todo, ge = self.vq_model.decode_encp(pred_semantic, phoneme_ids1_dev, refer_spec, ge, speed)
+            Tchunk_cfm_const = 1000
+            chunk_len_for_cfm_iter = Tchunk_cfm_const - T_min_for_cfm_context_window
 
-            cfm_results_list = []
-            idx_cfm = 0
+            cfm_results_list_for_segment = []
+            idx_cfm_current_segment = 0
             while True:
-                fea_todo_chunk = fea_todo[:, :, idx_cfm : idx_cfm + chunk_len]
-                if fea_todo_chunk.shape[-1] == 0:
-                    break
-                idx_cfm += fea_todo_chunk.shape[-1]
-                fea_combined = torch.cat([fea_context, fea_todo_chunk], dim=2).transpose(1, 2)
-                cfm_res_chunk = self.vq_model.cfm.inference(
-                    fea_combined, torch.LongTensor([fea_combined.size(1)]).to(fea_combined.device), mel_context, sample_steps, inference_cfg_rate=0
-                )
-                cfm_res_new = cfm_res_chunk[:, :, mel_context.shape[2] :]
-                cfm_results_list.append(cfm_res_new)
-                mel_context = cfm_res_chunk[:, :, -T_min:]
-                fea_context = fea_todo_chunk[:, :, -T_min:]
+                fea_todo_chunk_iter = fea_todo_segment[:, :, idx_cfm_current_segment : idx_cfm_current_segment + chunk_len_for_cfm_iter]
+                if fea_todo_chunk_iter.shape[-1] == 0: break
+                idx_cfm_current_segment += fea_todo_chunk_iter.shape[-1]
 
-            if not cfm_results_list:
-                audio_opt.append(zero_wav_torch)  # Add silence
-                # Log zero times for this segment or handle appropriately
-                time_log_segments.extend(
-                    [
-                        t_gpt_infer_start - t_prev_stage_end,  # Text proc time
-                        t_gpt_infer_end_and_vq_start - t_gpt_infer_start,  # GPT time
-                        0.0,  # VQ/Vocoder time
-                    ]
+                fea_combined_for_cfm_iter = torch.cat([current_fea_cfm_context, fea_todo_chunk_iter], dim=2).transpose(1, 2)
+
+                cfm_res_chunk_iter = self.vq_model.cfm.inference(
+                    fea_combined_for_cfm_iter,
+                    torch.LongTensor([fea_combined_for_cfm_iter.size(1)]).to(fea_combined_for_cfm_iter.device),
+                    current_mel_cfm_context, sample_steps, inference_cfg_rate=0
                 )
-                t_prev_stage_end = ttime()  # Reset for next segment's text proc phase
+                cfm_res_new_part_iter = cfm_res_chunk_iter[:, :, current_mel_cfm_context.shape[2] :]
+                cfm_results_list_for_segment.append(cfm_res_new_part_iter)
+
+                # Update contexts for the NEXT iteration of THIS segment's CFM loop
+                current_mel_cfm_context = cfm_res_chunk_iter[:, :, -T_min_for_cfm_context_window:]
+                current_fea_cfm_context = fea_todo_chunk_iter[:, :, -T_min_for_cfm_context_window:]
+
+            if not cfm_results_list_for_segment:
+                audio_opt_list.append(zero_wav_torch_inter_segment) # Add silence for this failed segment
+                time_log_segments_target_details.extend([
+                    t_gpt_infer_start_timestamp - t_prev_stage_end_timestamp,
+                    t_gpt_infer_end_and_vq_start_timestamp - t_gpt_infer_start_timestamp,
+                    0.0 # VQ/Vocoder time is zero for this segment
+                ])
+                t_prev_stage_end_timestamp = time() # Update for next segment
                 continue
 
-            cfm_res_final = torch.cat(cfm_results_list, dim=2)
-            mel_final_denorm = self._denorm_spec(cfm_res_final)
+            cfm_res_final_for_segment = torch.cat(cfm_results_list_for_segment, dim=2)
+            mel_final_denorm_for_segment = self._denorm_spec(cfm_res_final_for_segment)
 
-            if self.hifigan_model is None:
-                raise RuntimeError("HiFiGAN vocoder not initialized.")
-            wav_gen = self.hifigan_model(mel_final_denorm.to(self.device, self.dtype))
-            audio_segment = wav_gen[0, 0]
-            max_audio = torch.abs(audio_segment).max()
-            if max_audio > 1.0:
-                audio_segment = audio_segment / max_audio
+            if self.hifigan_model is None: raise RuntimeError("HiFiGAN vocoder not initialized.")
 
-            audio_opt.append(audio_segment.to(torch.float32))
-            audio_opt.append(zero_wav_torch.to(audio_segment.device, torch.float32))
+            wav_gen_output_segment = self.hifigan_model(mel_final_denorm_for_segment.to(self.device, self.dtype)) # ensure tensor on hifigan's device
+            audio_segment_data = wav_gen_output_segment[0, 0]
+            max_audio_amplitude = torch.abs(audio_segment_data).max()
+            if max_audio_amplitude > 1.0: audio_segment_data = audio_segment_data / max_audio_amplitude
 
-            t_vq_voc_end = ttime()  # t4 in original loop
+            audio_opt_list.append(audio_segment_data.to(torch.float32)) # Ensure float32 for concatenation
+            audio_opt_list.append(zero_wav_torch_inter_segment.to(audio_segment_data.device, torch.float32))
 
-            time_log_segments.extend(
-                [
-                    t_gpt_infer_start - t_prev_stage_end,  # Duration for text processing of current segment
-                    t_gpt_infer_end_and_vq_start - t_gpt_infer_start,  # Duration for T2S (GPT)
-                    t_vq_voc_end - t_gpt_infer_end_and_vq_start,  # Duration for VQ/CFM + Vocoder
-                ]
-            )
-            t_prev_stage_end = ttime()  # Reset t1 for the next iteration, as in original's t1=ttime()
+            t_vq_voc_end_timestamp = time()
+            time_log_segments_target_details.extend([
+                t_gpt_infer_start_timestamp - t_prev_stage_end_timestamp,
+                t_gpt_infer_end_and_vq_start_timestamp - t_gpt_infer_start_timestamp,
+                t_vq_voc_end_timestamp - t_gpt_infer_end_and_vq_start_timestamp
+            ])
+            t_prev_stage_end_timestamp = time() # Update for the next segment's text processing phase
 
-        # --- Final Audio Concatenation and Output ---
-        final_audio_tensor = torch.cat(audio_opt, dim=0)
-        final_audio_np = final_audio_tensor.cpu().numpy()
-        final_audio_int16 = (final_audio_np * 32767.0).astype(np.int16)
+        if not audio_opt_list or all(a.numel() == 0 for a in audio_opt_list if isinstance(a, torch.Tensor)):
+            print("Warning: No effective audio segments were generated for the target text.")
+            yield output_sr, np.zeros(int(output_sr * 0.1), dtype=np.int16) # yield short silence
+            return
 
-        # --- Print Timing Info ---
-        if len(time_log_segments) > 0:  # Ensure there's at least ref_proc_time
-            ref_proc_time = time_log_segments[0]
-            # Check if there are segment processing times
-            if len(time_log_segments) > 1:
-                sum_text_proc_time = sum(time_log_segments[1::3])
-                sum_gpt_time = sum(time_log_segments[2::3])
-                sum_vq_voc_time = sum(time_log_segments[3::3])
-                print(
-                    f"Timings (s): Ref={ref_proc_time:.3f}\t"
-                    f"TextProc={sum_text_proc_time:.3f}\t"
-                    f"GPT={sum_gpt_time:.3f}\t"
-                    f"VQ/Voc={sum_vq_voc_time:.3f}"
-                )
-            else:  # Only reference processing time is available
-                print(f"Timings (s): Ref={ref_proc_time:.3f}\t (No target segments processed)")
+        final_audio_tensor_output = torch.cat(audio_opt_list, dim=0)
 
-        t_overall_end = ttime()
-        print(f"Total function runtime: {t_overall_end - t0_overall_start:.3f}s") # Optional overall time
+        final_audio_numpy = final_audio_tensor_output.cpu().numpy()
+        final_audio_int16 = (final_audio_numpy * 32767.0).astype(np.int16)
+
+        t_overall_target_synth_end = time()
+
+        # --- Timing & Performance Stats for Target Synthesis ---
+        total_target_synthesis_duration = t_overall_target_synth_end - t_overall_target_synth_start
+        target_wav_length_in_seconds = len(final_audio_int16) / output_sr
+
+        speed_up = -1.0 # Default if duration is too short
+        if total_target_synthesis_duration > 1e-6 : # Avoid division by zero or very small numbers
+             speed_up = target_wav_length_in_seconds / total_target_synthesis_duration
+
+        print(f"Target Synthesis Time: {total_target_synthesis_duration:.3f}s")
+        print(f"Target WAV Length: {target_wav_length_in_seconds:.3f}s")
+        print(f"Speed-Up Factor: {speed_up:.2f}x (audio_duration / synthesis_time)")
+
+        # Optional: Detailed breakdown for target synthesis parts
+        if len(time_log_segments_target_details) > 0:
+            sum_text_proc_time = sum(time_log_segments_target_details[0::3])
+            sum_gpt_time = sum(time_log_segments_target_details[1::3])
+            sum_vq_voc_time = sum(time_log_segments_target_details[2::3])
+            # Ensure this print makes sense if only one segment was processed (no sum needed then)
+            print(f"  Detailed Breakdown (s): TargetTextProc={sum_text_proc_time:.3f}, TargetGPT={sum_gpt_time:.3f}, TargetVQ/Voc={sum_vq_voc_time:.3f}")
 
         yield output_sr, final_audio_int16
+
+    # Deprecated: Or adapt to call the new methods
+    # def get_tts_wav(self, ...):
+    #    ref_artifacts = self.process_reference_audio(...)
+    #    yield from self.synthesize_target_speech(ref_artifacts, ...)

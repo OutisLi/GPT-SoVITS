@@ -3,15 +3,20 @@ import argparse
 import soundfile as sf
 
 
-from GPT_SoVITS.cli.GPTSovitsTTS_mod import GPTSovitsTTS
+from cli.GPTSovitsTTS_backup import GPTSovitsTTS
 
 
 def synthesize(ref_audio_path, ref_text, target_text, output_path, speed):
     tts = GPTSovitsTTS()
 
     # Synthesize audio
-    ref_artifacts = tts.process_reference_audio(ref_audio_path, ref_text) # Example pause
-    synthesis_result = tts.synthesize_target_speech(ref_artifacts, target_text)
+    # 默认中英文混合输入输出
+    synthesis_result = tts.get_tts_wav(
+        ref_wav_path=ref_audio_path,
+        prompt_text=ref_text,
+        text=target_text,
+        speed=speed,
+    )
 
     result_list = list(synthesis_result)
 
