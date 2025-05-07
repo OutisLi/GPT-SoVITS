@@ -30,7 +30,8 @@ import numpy as np
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
 # --- Project specific imports ---
-# Assume these imports are correctly resolved in the original project structure
+cli_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, cli_dir + "/..")
 from text.LangSegmenter import LangSegmenter
 from feature_extractor import cnhubert  # Needs cnhubert_base_path set
 from GPT_SoVITS.module.models import SynthesizerTrnV3, Generator

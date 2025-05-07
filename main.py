@@ -3,7 +3,7 @@ import argparse
 import soundfile as sf
 
 
-from cli.GPTSovitsTTS import GPTSovitsTTS
+from GPT_SoVITS.cli.GPTSovitsTTS import GPTSovitsTTS
 
 
 def synthesize(ref_audio_path, ref_text, target_text, output_path, speed):
