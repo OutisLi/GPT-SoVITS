@@ -37,8 +37,8 @@ except:
     ...
 version = "v2"
 
-cnhubert_base_path = os.environ.get("cnhubert_base_path", "models/GPT_SoVITS_v4/chinese-hubert-base")
-bert_path = os.environ.get("bert_path", "models/GPT_SoVITS_v4/chinese-roberta-wwm-ext-large")
+cnhubert_base_path = os.environ.get("cnhubert_base_path", "GPT_SoVITS/pretrained_models/chinese-hubert-base")
+bert_path = os.environ.get("bert_path", "GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large")
 infer_ttswebui = os.environ.get("infer_ttswebui", 9872)
 infer_ttswebui = int(infer_ttswebui)
 is_share = os.environ.get("is_share", "False")
@@ -246,7 +246,7 @@ def init_hifigan():
     )
     hifigan_model.eval()
     hifigan_model.remove_weight_norm()
-    state_dict_g = torch.load("models/GPT_SoVITS_v4/vocoder.pth", map_location="cpu")
+    state_dict_g = torch.load("GPT_SoVITS/pretrained_models/vocoder.pth", map_location="cpu")
     print("loading vocoder", hifigan_model.load_state_dict(state_dict_g))
     if is_half == True:
         hifigan_model = hifigan_model.half().to(device)

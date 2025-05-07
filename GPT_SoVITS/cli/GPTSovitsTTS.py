@@ -123,9 +123,9 @@ class GPTSovitsTTS:
         set_seed(seed)
 
         # Determine configuration values
-        self.cnhubert_base_path = cnhubert_base_path or os.environ.get("cnhubert_base_path", "models/GPT_SoVITS_v4/chinese-hubert-base")
-        self.bert_path = bert_path or os.environ.get("bert_path", "models/GPT_SoVITS_v4/chinese-roberta-wwm-ext-large")
-        self.hifigan_path = hifigan_path or os.path.join(os.getcwd(), "models/GPT_SoVITS_v4/vocoder.pth")
+        self.cnhubert_base_path = cnhubert_base_path or os.environ.get("cnhubert_base_path", "GPT_SoVITS/pretrained_models/chinese-hubert-base")
+        self.bert_path = bert_path or os.environ.get("bert_path", "GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large")
+        self.hifigan_path = hifigan_path or os.path.join(os.getcwd(), "GPT_SoVITS/pretrained_models/vocoder.pth")
 
         if device:
             self.device = device

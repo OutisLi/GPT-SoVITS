@@ -3,13 +3,13 @@ import argparse
 import soundfile as sf
 
 
-from cli.cli_utils import load_gpt_weights, load_sovits_weights, get_tts_wav
+from GPT_SoVITS.cli.cli_utils import load_gpt_weights, load_sovits_weights, get_tts_wav
 
 
 def synthesize(ref_audio_path, ref_text, target_text, output_path, speed):
     # Change model weights
-    load_gpt_weights("models/GPT_SoVITS_v4/s1v3.ckpt")
-    load_sovits_weights("models/GPT_SoVITS_v4/s2Gv4.pth")
+    load_gpt_weights("GPT_SoVITS/pretrained_models/s1v3.ckpt")
+    load_sovits_weights("GPT_SoVITS/pretrained_models/s2Gv4.pth")
 
     # Synthesize audio
     # 默认中英文混合输入输出
