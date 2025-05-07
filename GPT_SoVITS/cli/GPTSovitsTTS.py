@@ -30,8 +30,10 @@ import numpy as np
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
 # --- Project specific imports ---
-cli_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, cli_dir + "/..")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+package_root = os.path.abspath(os.path.join(current_dir, ".."))
+if package_root not in sys.path:
+    sys.path.insert(0, package_root)
 from text.LangSegmenter import LangSegmenter
 from feature_extractor import cnhubert  # Needs cnhubert_base_path set
 from GPT_SoVITS.module.models import SynthesizerTrnV3, Generator
@@ -128,11 +130,11 @@ class GPTSovitsTTS:
 
         # Determine configuration values
         # fmt: off
-        self.gpt_weight_path = gpt_weight_path or os.environ.get("gpt_weight_path", "GPT_SoVITS/pretrained_models/s1v3.ckpt")
-        self.sovits_weight_path = sovits_weight_path or os.environ.get("sovits_weight_path", "GPT_SoVITS/pretrained_models/gsv-v4-pretrained/s2Gv4.pth")
-        self.cnhubert_base_path = cnhubert_base_path or os.environ.get("cnhubert_base_path", "GPT_SoVITS/pretrained_models/chinese-hubert-base")
-        self.bert_path = bert_path or os.environ.get("bert_path", "GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large")
-        self.hifigan_path = hifigan_path or os.path.join(os.getcwd(), "GPT_SoVITS/pretrained_models/gsv-v4-pretrained/vocoder.pth")
+        self.gpt_weight_path = gpt_weight_path or os.environ.get("gpt_weight_path", os.path.join(package_root, "pretrained_models/s1v3.ckpt"))
+        self.sovits_weight_path = sovits_weight_path or os.environ.get("sovits_weight_path", os.path.join(package_root, "pretrained_models/s2Gv4.pth"))
+        self.cnhubert_base_path = cnhubert_base_path or os.environ.get("cnhubert_base_path", os.path.join(package_root, "pretrained_models/chinese-hubert-base"))
+        self.bert_path = bert_path or os.environ.get("bert_path", os.path.join(package_root, "pretrained_models/chinese-roberta-wwm-ext-large"))
+        self.hifigan_path = hifigan_path or os.environ.get("hifigan_path", os.path.join(package_root, "pretrained_models/vocoder.pth"))
         # fmt: on
 
         if device:
@@ -270,7 +272,7 @@ class GPTSovitsTTS:
 
             state_dict_g = torch.load(self.hifigan_path, map_location="cpu")
 
-            # print(f"Loading HiFiGAN vocoder weights: {self.hifigan_model.load_state_dict(state_dict_g)}")
+            print(f"Loading HiFiGAN vocoder weights: {self.hifigan_model.load_state_dict(state_dict_g)}")
 
             if self.is_half:
                 self.hifigan_model = self.hifigan_model.half()
@@ -321,13 +323,11 @@ class GPTSovitsTTS:
 
             # Load weights (handle potential LoRA)
             if not if_lora_v3:
-                # print(f"Loading SoVITS weights (strict=False): {self.vq_model.load_state_dict(dict_s2['weight'], strict=False)}")
-                pass
+                print(f"Loading SoVITS weights (strict=False): {self.vq_model.load_state_dict(dict_s2['weight'], strict=False)}")
             else:
                 # Handle LoRA loading if necessary (based on original logic if it existed)
-                # print("LoRA detected - standard weight loading might be incomplete or incorrect if LoRA weights are separate.")
-                # print(f"Attempting SoVITS LoRA weight load (strict=False): {self.vq_model.load_state_dict(dict_s2['weight'], strict=False)}")
-                pass
+                print("LoRA detected - standard weight loading might be incomplete or incorrect if LoRA weights are separate.")
+                print(f"Attempting SoVITS LoRA weight load (strict=False): {self.vq_model.load_state_dict(dict_s2['weight'], strict=False)}")
 
             # print("SoVITS weights loaded successfully.")
         except Exception as e:
